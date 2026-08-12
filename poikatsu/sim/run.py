@@ -4,6 +4,7 @@
     python3 -m poikatsu.sim.run benchmark    # 20案件のベンチマークで精度を測る
     python3 -m poikatsu.sim.run daily        # 1日100案件 × 30日の運用シミュレーション
     python3 -m poikatsu.sim.run learn        # ベイズ更新 vs 素朴な上書きの比較
+    python3 -m poikatsu.sim.run cancel      # 継続課金案件の解約忘れリスク
     python3 -m poikatsu.sim.run all
 """
 from __future__ import annotations
@@ -11,7 +12,7 @@ from __future__ import annotations
 import random
 import sys
 
-from . import agents, engine, world
+from . import agents, cancel, engine, world
 from .learning import BetaEstimator, ModelScorecard, NaiveEstimator
 from .models import Cost, Decision, Offer, PipelineResult, Truth
 
@@ -376,6 +377,9 @@ def main() -> None:
         print()
     if mode in ("learn", "all"):
         mode_learn()
+        print()
+    if mode in ("cancel", "all"):
+        cancel.run()
 
 
 if __name__ == "__main__":
