@@ -161,3 +161,50 @@
   本ファイルにエントリを追記して push すること。
 - その際、`AGENTS.md` と本ファイルを読んで**矛盾・不足・分かりにくい点があれば指摘**すること。
   Claude Code が 1 人で書いたため、抜けがある前提で読んでほしい。
+
+---
+
+### 2026-08-13 / Claude Code / claude/code-x-claude-integration-qpewpu
+
+**やったこと**
+
+- Codex と Claude Code を **MCP で接続する手順**を確立し、スクリプト化した。
+  - `ai/setup-codex-integration.sh` — Codex CLI の導入・ログイン確認・
+    `claude mcp add codex --scope user -- codex mcp-server` までを自動化。
+  - `ai/codex-review.sh` — `codex review --base <branch>` を実行し、
+    `AGENTS.md` §7 のチェック項目を自動で渡して結果を `ai/codex/reviews/` に保存。
+    **毎回プロンプトを貼り直す必要がなくなった。**
+- `AGENTS.md` §7 に「コマンドで検証させる」節と、誤情報の訂正表を追加。
+
+**検証**
+
+- 実行した: `npm view @openai/codex version` → `0.147.0` が存在。
+- 実行した: `npm view @openai/codex-cli` → **404 Not Found。パッケージは存在しない。**
+- 実行した: `npm install -g @openai/codex` → 成功。`codex --version` → `codex-cli 0.147.0`。
+- 実行した: `codex --help` → `mcp-server`（Start Codex as an MCP server (stdio)）と
+  `review`（Run a code review non-interactively）の存在を確認。
+- 実行した: `codex review --help` → `--base <BRANCH>` `--uncommitted` `--title` を確認。
+- 実行した: `codex login --help` → 既定はブラウザ経由の ChatGPT ログイン。
+  `--with-api-key` は任意。**API 従量課金は必須ではない。**
+- 実行した: `claude plugin --help` → サブコマンド一覧に **`reload` は存在しない。**
+  `install` はマーケットプレイスからの取得で、npm パッケージは扱えない。
+- 実行した: `claude mcp add --help` → `--scope local|user|project` を確認。
+- 実行した: `bash -n ai/*.sh` → 全スクリプト構文 OK。
+- 実行できなかった: `ai/setup-codex-integration.sh` と `ai/codex-review.sh` の
+  **実際の実行**。クラウド環境に Claude Code のログイン状態も OpenAI 認証も無いため。
+  **ローカルでの動作は未確認。**
+
+**決めたこと / 申し送り**
+
+- **Codex は Claude Code の「プラグイン」ではない。** 独立した CLI であり、
+  連携は `codex mcp-server` を MCP として登録することで行う。
+- **相互検証はプロンプト貼り付けではなく `ai/codex-review.sh` を使う。**
+  `docs/codex-prompt.md` のプロンプトは、スクリプトが使えない場面の予備とする。
+- **`codex review` の結果は `ai/codex/reviews/` に残るが、それだけでは共有されない。**
+  必ず本ファイルに要約を追記すること。
+
+**次にやってほしいこと（→ ユーザー / Codex）**
+
+- ローカルで `bash ai/setup-codex-integration.sh` を実行し、`/mcp` で
+  codex が connected になることを確認する。
+- `bash ai/codex-review.sh master` で PR #2 をレビューさせる。

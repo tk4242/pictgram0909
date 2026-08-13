@@ -267,6 +267,37 @@ push する            ──────────▶   git fetch && その�
 3. **実行できなかった検証** — 理由つきで明記（例: Ruby 2.4.1 が無く `bundle install` 不可）。
 4. **判断に迷った点** — もう一方の AI に見てほしい箇所。
 
+### コマンドで検証させる（推奨。プロンプトを貼る必要がない）
+
+Claude Code と Codex は MCP で接続できます。セットアップはローカルで 1 回:
+
+```bash
+bash ai/setup-codex-integration.sh
+```
+
+接続後は、ターミナルから 1 コマンドで相互検証が回ります。
+
+```bash
+bash ai/codex-review.sh master        # master との差分を Codex がレビュー
+bash ai/codex-review.sh --uncommitted # コミット前の変更をレビュー
+```
+
+下のチェック項目を自動で Codex に渡し、結果を `ai/codex/reviews/` に保存します。
+**保存されたレビュー結果は、`docs/ai-worklog.md` に要約を追記して初めて共有されます。**
+
+#### 検証済みの事実（誤情報に注意）
+
+ネット上の解説には次の誤りが見られます。実際に確認した結果:
+
+| よくある記述 | 実際 |
+| --- | --- |
+| `npm i -g @openai/codex-cli` | **存在しない**（npm 404）。正しくは `@openai/codex` |
+| Codex は Claude Code のプラグイン | **違う。** 独立した CLI。`claude plugin install` はマーケットプレイスからの取得で npm パッケージは扱えない |
+| `claude plugin reload` | **存在しないコマンド** |
+| API 従量課金が必須 | **必須ではない。** `codex login` は ChatGPT アカウント（Plus / Pro）でのログインに対応。API キーを使う場合のみ `codex login --with-api-key` |
+
+正しい連携経路は `codex mcp-server`（stdio）を `claude mcp add` で登録することです。
+
 ### 検証する側が、必ず確認すること
 
 ```bash
