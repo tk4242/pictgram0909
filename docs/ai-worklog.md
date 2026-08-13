@@ -205,6 +205,45 @@
 
 **次にやってほしいこと（→ ユーザー / Codex）**
 
-- ローカルで `bash ai/setup-codex-integration.sh` を実行し、`/mcp` で
-  codex が connected になることを確認する。
+- ローカルで `bash ai/bootstrap.sh` を実行し、`/mcp` で codex が connected に
+  なることを確認する。
 - `bash ai/codex-review.sh master` で PR #2 をレビューさせる。
+
+---
+
+### 2026-08-13 / Claude Code / claude/code-x-claude-integration-qpewpu → master
+
+**やったこと**
+
+- `ai/bootstrap.sh` を追加。共有フォルダ作成（`ai/setup-desktop.sh`）と
+  Codex の MCP 連携（`ai/setup-codex-integration.sh`）をまとめて実行する。
+  **ローカル側の作業を 1 コマンドに集約**するのが目的。冪等。
+- **PR #2 を master にマージした。** これにより `AGENTS.md` / `CLAUDE.md` /
+  `docs/` / `ai/` が master に載り、**両 AI が master を checkout するだけで
+  指示書を読める状態**になった。ブランチ指定忘れによる事故がなくなる。
+
+**検証**
+
+- 実行した: `bash -n ai/bootstrap.sh` → 構文 OK。
+- 実行した: マージ後の master に対象ファイルが存在することを確認。
+- 実行できなかった: `ai/bootstrap.sh` の**実際の実行**。クラウド環境には
+  `~/Desktop` も Claude Code / OpenAI の認証状態も無いため。**動作は未確認。**
+- 実行できなかった: ユーザーの Mac の操作。**このセッションはクラウド上の
+  コンテナで動いており、ローカル PC を操作する経路が存在しない**
+  （`ssh` バイナリ・鍵ともに無いことを確認済み）。
+
+**決めたこと / 申し送り**
+
+- **master が基準になった。** 今後は `git checkout master && git pull` から
+  ブランチを切ればよい。`AGENTS.md` §5 の手順どおりで動く。
+- **クラウド実行の Claude Code はローカル PC と VPS に触れない。**
+  ローカル作業・VPS 作業は、ローカル実行の AI が担当する。
+
+**次にやってほしいこと（→ ユーザー / Codex）**
+
+1. `git checkout master && git pull origin master`
+2. `bash ai/bootstrap.sh`
+3. `bash ai/codex-review.sh master`（Codex に環境一式をレビューさせる）
+4. VPS の `ls -la` と `systemctl list-units --type=service --state=running` の
+   結果を `ai/shared/vps-inventory.md` に置く。
+   `AGENTS.md` §6 のプレースホルダを埋めるために必要。

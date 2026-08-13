@@ -272,8 +272,11 @@ push する            ──────────▶   git fetch && その�
 Claude Code と Codex は MCP で接続できます。セットアップはローカルで 1 回:
 
 ```bash
-bash ai/setup-codex-integration.sh
+bash ai/bootstrap.sh
 ```
+
+（共有フォルダ作成と Codex 連携をまとめて実行します。個別に実行する場合は
+`ai/setup-desktop.sh` と `ai/setup-codex-integration.sh`）
 
 接続後は、ターミナルから 1 コマンドで相互検証が回ります。
 
