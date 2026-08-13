@@ -161,3 +161,55 @@
   本ファイルにエントリを追記して push すること。
 - その際、`AGENTS.md` と本ファイルを読んで**矛盾・不足・分かりにくい点があれば指摘**すること。
   Claude Code が 1 人で書いたため、抜けがある前提で読んでほしい。
+
+---
+
+### 2026-08-13 / Codex / codex/review-pr-2
+
+**やったこと**
+
+- PR #2（`claude/code-x-claude-integration-qpewpu` → `master`）について、`AGENTS.md`、
+  本ワークログ、追加された `CLAUDE.md`・`ai/`・`docs/codex-prompt.md`、および
+  `git diff master...HEAD` の全差分をレビューした。アプリケーションコードは変更していない。
+
+**検証**
+
+- 実行した: `bundle check` → 成功。`The Gemfile's dependencies are satisfied`。
+- 実行した: `ruby --version` / `bundle exec ruby --version` → どちらも
+  `ruby 2.4.1p111`。
+- 実行した: `bin/rails routes`、`bin/rails test test/models` → どちらも失敗。
+  Ruby の `digest/md5.bundle` が削除済みの
+  `/usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib` を要求する `LoadError` のため、
+  Rails とテストランナーは起動できなかった。
+- 実行した: `git diff --check master...HEAD` → 成功（空白エラーなし）。
+- 実行した: `bash -n ai/setup-desktop.sh` → 成功。Claude Code の構文チェック主張は再現できた。
+- 実行できなかった: `bin/rails test` → 上記 OpenSSL 共有ライブラリ欠落によりテスト開始前に失敗。
+
+**決めたこと / 申し送り**
+
+- **P1: §2 の環境判定は不十分。** この Mac では `bundle check` と Ruby 2.4.1 は成功する一方、
+  Rails は旧 OpenSSL 1.0.0 の欠落で起動しない。Ruby のバージョン一致だけで
+  「テストを実行できる」と判断せず、`bin/rails routes` など Rails 起動確認を必須にすべき。
+  今回はレビューのみで `AGENTS.md` は修正していない。
+- **P1: §5 と `docs/codex-prompt.md` §2 の分岐元が矛盾。** §5 は常に master から新規ブランチを
+  切る一方、プロンプトはワークログ記載の現行ブランチから分岐するよう指示する。現状では
+  指示書自体が master に無いため、どちらを正とするかを明文化する必要がある。
+- **P1: VPS 禁止事項はコマンド名の列挙だけでは不足。** root での `sudo` 不要な
+  `reboot` / `shutdown`、`mv`・リダイレクト・`truncate` による破壊的上書き、
+  `chmod` / `chown`、ユーザー・SSH 鍵の変更、DB 書き込み・Docker 操作・ネットワーク設定変更が
+  明示的に禁止されていない。操作の種類で禁止する必要がある。また `cat` は秘密情報を出力し得るため、
+  秘密情報を含むファイルの表示禁止も必要。
+- **P2: `ai/setup-desktop.sh` は既存の `~/Desktop/ai-shared/README.md` を無条件に上書きし、
+  作成ディレクトリの権限を固定しない。** 秘密情報・VPS ログの置き場としては、既存ファイル保護と
+  `0700` 相当の権限方針を決める必要がある。
+- Claude Code の「Ruby 3.3.6 のクラウド環境では `bundle check` が失敗」「テスト未実行」という
+  記録は環境を限定しており、今回のローカル結果とは矛盾しない。ただし現在の環境では別原因で
+  テストが起動不能であることを本エントリで共有する。
+- `AGENTS.md` / `docs/ai-worklog.md` / `docs/codex-prompt.md` に追加された § 番号参照は
+  現時点の節番号と一致し、PR 差分はアプリケーションコード・テスト・ルーティング・DB スキーマを
+  変更していないことを確認した。
+
+**次にやってほしいこと**
+
+- ユーザーの方針決定後、上記 P1/P2 を独立したドキュメント整備タスクで解消すること。
+  特に master への指示書取り込み方針と、Rails 起動不能なローカル環境の扱いを先に決める。
