@@ -9,15 +9,23 @@
 
 set -euo pipefail
 
-ROOT="${HOME}/Desktop/ai-shared"
+# 共有フォルダには VPS のログなど機微な情報を置くことがある。新規作成物を
+# 所有ユーザー以外から読めない権限にし、既存のファイルは上書きしない。
+umask 077
+ROOT="${AI_SHARED_ROOT:-${HOME}/Desktop/ai-shared}"
 
-mkdir -p \
-  "${ROOT}/inbox" \
-  "${ROOT}/vps-logs" \
-  "${ROOT}/codex" \
-  "${ROOT}/claude"
+if [[ -e "${ROOT}" && ! -d "${ROOT}" ]]; then
+  echo "エラー: 共有フォルダのパスがディレクトリではありません: ${ROOT}" >&2
+  exit 1
+fi
 
-cat > "${ROOT}/README.md" <<'MARKDOWN'
+for DIR in "${ROOT}" "${ROOT}/inbox" "${ROOT}/vps-logs" "${ROOT}/codex" "${ROOT}/claude"; do
+  mkdir -p "${DIR}"
+  chmod 700 "${DIR}"
+done
+
+if [[ ! -e "${ROOT}/README.md" ]]; then
+  cat > "${ROOT}/README.md" <<'MARKDOWN'
 # ai-shared — AI 共有フォルダ（git 管理外）
 
 Codex と Claude Code の両方がアクセスしてよいローカルフォルダです。
@@ -45,6 +53,10 @@ Codex と Claude Code の両方がアクセスしてよいローカルフォル�
       root@160.251.137.210:<リモートパス> \
       ~/Desktop/ai-shared/vps-logs/
 MARKDOWN
+  chmod 600 "${ROOT}/README.md"
+else
+  echo "既存の README.md を保持します: ${ROOT}/README.md"
+fi
 
 echo "作成しました: ${ROOT}"
 find "${ROOT}" -maxdepth 1 -mindepth 1 | sort

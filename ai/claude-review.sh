@@ -1,26 +1,25 @@
 #!/usr/bin/env bash
 #
-# Codex に現在のブランチの差分を読み取り専用でレビューさせ、結果をファイルに保存する。
+# Claude Code に現在のブランチの差分を読み取り専用でレビューさせ、結果を保存する。
 #
-#   bash ai/codex-review.sh [base-branch]      # 既定: master
-#   bash ai/codex-review.sh --uncommitted      # コミット前の変更をレビュー
+#   bash ai/claude-review.sh [base-branch]      # 既定: master
+#   bash ai/claude-review.sh --uncommitted      # コミット前の変更をレビュー
 #
-# AGENTS.md §7「AI 間の相互検証プロトコル」のチェック項目をそのまま
-# Codex への指示として渡すため、毎回プロンプトを貼り直す必要がない。
+# Claude Code は --permission-mode plan で起動し、修正を行わずに指摘だけを返す。
 
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-if ! command -v codex >/dev/null 2>&1; then
-  echo "エラー: codex コマンドが見つかりません。bash ai/setup-codex-integration.sh を実行してください。" >&2
+if ! command -v claude >/dev/null 2>&1; then
+  echo "エラー: claude コマンドが見つかりません。Claude Code を導入してから再実行してください。" >&2
   exit 1
 fi
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 STAMP="$(date +%Y%m%d_%H%M%S)"
-OUTDIR="ai/codex/reviews"
-OUT="${OUTDIR}/${STAMP}_${BRANCH//\//-}.md"
+OUTDIR="ai/shared/reviews"
+OUT="${OUTDIR}/${STAMP}_${BRANCH//\//-}_claude.md"
 
 if [[ "${1:-}" == "--uncommitted" ]]; then
   SCOPE="コミット前の変更（staged / unstaged / untracked）"
@@ -37,35 +36,35 @@ fi
 
 read -r -d '' PROMPT <<INSTRUCTIONS || true
 このリポジトリは Codex と Claude Code の 2 つの AI が同じファイルを触る前提で運用しています。
-まず AGENTS.md と docs/ai-worklog.md を読み、そのうえで差分をレビューしてください。
+まず AGENTS.md と docs/ai-worklog.md を読み、そのうえで ${SCOPE} をレビューしてください。
 
 【対象の確認方法】
 ${REVIEW_TARGET}
 
-ファイルの作成・編集・削除、Git の状態変更、ネットワーク操作、VPS 操作は行わないでください。
+コードやドキュメントを編集せず、
+ファイルの作成・削除・git の状態変更・ネットワーク操作も行わないでください。
 
-【チェック項目】AGENTS.md §7 のチェックリストを 1 項目ずつ潰してください。
+【チェック項目】AGENTS.md §7 のチェックリストを 1 項目ずつ確認してください。
 - binding.pry / debugger / デバッグ用 puts が残っていないか
 - テストが変更に追随しているか（新しい分岐にテストがあるか）
 - ルーティングヘルパー名が config/routes.rb の定義と一致しているか
 - Strong Parameters を通しているか（params[:user][:x] 直読みでないか）
 - db/schema.rb とマイグレーションの整合が取れているか
-- Claude Code が「検証済み」と主張している内容が、実際に実行可能なものだったか
+- Codex が「検証済み」と主張している内容が、実際に実行可能なものだったか
 
 【報告の形式】
 - 確認できた項目
 - 問題が見つかった項目（ファイル名と行番号つき、なぜ問題かを具体的に）
 - 確認できなかった項目（理由つき）
 
-「LGTM」だけの回答は禁止です。何を見て問題なしと判断したのかを書いてください。
-Claude Code の報告を鵜呑みにせず、自分で確かめてください。
-この段階ではコードを修正せず、指摘を返すだけにしてください。
+「LGTM」だけの回答は禁止です。何を見て問題なしと判断したかを書いてください。
+Codex の報告を鵜呑みにせず、自分で確かめてください。この段階では修正を提案するだけにしてください。
 INSTRUCTIONS
 
 mkdir -p "${OUTDIR}"
 
 {
-  echo "# Codex レビュー: ${BRANCH}"
+  echo "# Claude Code レビュー: ${BRANCH}"
   echo
   echo "- 日時: $(date '+%Y-%m-%d %H:%M:%S')"
   echo "- 対象: ${SCOPE}"
@@ -75,10 +74,10 @@ mkdir -p "${OUTDIR}"
   echo
 } > "${OUT}"
 
-echo "Codex にレビューさせています（${SCOPE}）..."
-# `codex review` は現在の CLI では比較対象と任意プロンプトを同時に取れない。
-# AGENTS.md の必須チェックを確実に渡すため、読み取り専用 sandbox の exec を使う。
-codex exec --ephemeral --ignore-user-config --sandbox read-only "${PROMPT}" 2>&1 | tee -a "${OUT}"
+echo "Claude Code に読み取り専用レビューを依頼しています（${SCOPE}）..."
+claude -p --no-session-persistence --permission-mode plan \
+  --disallowedTools "Edit,Write,NotebookEdit" \
+  -- "${PROMPT}" 2>&1 | tee -a "${OUT}"
 
 cat <<MSG
 
@@ -87,8 +86,8 @@ cat <<MSG
 
 次にやること:
 1. 指摘内容を確認する
-2. docs/ai-worklog.md に「Codex がレビューし、何を指摘したか」を追記する
-   （AGENTS.md §8 の書式。書かないと Claude Code に伝わりません）
-3. 指摘への対応は Claude Code に依頼する
+2. docs/ai-worklog.md に「Claude Code がレビューし、何を指摘したか」を追記する
+   （AGENTS.md §8 の書式。書かないと Codex に伝わりません）
+3. 指摘への対応は Codex に依頼する
 --------------------------------------------------------------------
 MSG

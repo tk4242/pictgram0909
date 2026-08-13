@@ -283,10 +283,18 @@ bash ai/bootstrap.sh
 ```bash
 bash ai/codex-review.sh master        # master との差分を Codex がレビュー
 bash ai/codex-review.sh --uncommitted # コミット前の変更をレビュー
+bash ai/claude-review.sh master       # master との差分を Claude Code がレビュー
+bash ai/claude-review.sh --uncommitted # コミット前の変更を Claude Code がレビュー
 ```
 
-下のチェック項目を自動で Codex に渡し、結果を `ai/codex/reviews/` に保存します。
+各スクリプトは下のチェック項目を自動で渡します。Codex の結果は `ai/codex/reviews/`、
+Claude Code の結果は `ai/shared/reviews/` に保存します。`ai/claude/` は Claude Code 専用の
+作業領域なので、Codex が出力先として使ってはいけません。
 **保存されたレビュー結果は、`docs/ai-worklog.md` に要約を追記して初めて共有されます。**
+
+`ai/codex-review.sh` は Codex を `--sandbox read-only`、`ai/claude-review.sh` は Claude Code を
+`--permission-mode plan` で起動します。どちらもレビュー中にファイル・Git 状態・VPS を変更しては
+いけません。実装・修正は、レビュー結果をワークログに記録し、別ブランチで明示的に行います。
 
 #### 検証済みの事実（誤情報に注意）
 
@@ -299,7 +307,17 @@ bash ai/codex-review.sh --uncommitted # コミット前の変更をレビュー
 | `claude plugin reload` | **存在しないコマンド** |
 | API 従量課金が必須 | **必須ではない。** `codex login` は ChatGPT アカウント（Plus / Pro）でのログインに対応。API キーを使う場合のみ `codex login --with-api-key` |
 
-正しい連携経路は `codex mcp-server`（stdio）を `claude mcp add` で登録することです。
+正しい MCP 連携経路は次の双方向です。
+
+| 呼び出す側 | 呼び出される側 | 登録コマンド |
+| --- | --- | --- |
+| Claude Code | Codex | `claude mcp add codex --scope user -- codex mcp-server` |
+| Codex | Claude Code | `codex mcp add claude -- claude mcp serve` |
+
+`bash ai/setup-codex-integration.sh` が上記を冪等に実行します。Codex は MCP 設定を
+タスク開始時に読むため、Codex → Claude Code を登録した後は **新しい Codex タスク**を開始して
+ください。MCP を介した相手 AI への依頼も、レビュー・検証・指摘に限定し、無断の編集や
+VPS 操作を依頼してはいけません。
 
 ### 検証する側が、必ず確認すること
 

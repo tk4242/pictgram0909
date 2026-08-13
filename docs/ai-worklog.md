@@ -10,43 +10,43 @@
 
 ---
 
-## 現在の状況（最終更新: 2026-08-13 / Claude Code）
+## 現在の状況（最終更新: 2026-08-13 / Codex）
 
 ### 体制
 
 | 項目 | 状態 |
 | --- | --- |
-| Claude Code | 稼働中。ここまでの作業はすべて Claude Code が実施 |
-| Codex | **導入直後。プロジェクトの経緯をまだ把握していない** |
+| Claude Code | CLI 2.1.173 は導入済み。今回の端末では未ログインのため、モデルを使うレビューは `/login` 待ち |
+| Codex | ChatGPT でログイン済み。CLI 0.147.0-alpha.6.5。MCP 設定は登録済みだが、CLI のモデル呼出しは TLS 証明書エラーで未解決 |
 | 作業ディレクトリ（Codex） | `/Users/tk/Documents/Codex/pictgram0909` |
 | 共通指示書 | `AGENTS.md`（唯一の情報源） |
 | 作業フォルダ | `ai/shared/` `ai/codex/` `ai/claude/`（AGENTS.md §9） |
-| 共有フォルダ（git 管理外） | `~/Desktop/ai-shared/`。**未作成。** `bash ai/setup-desktop.sh` をローカルで実行して作る |
+| 共有フォルダ（git 管理外） | `~/Desktop/ai-shared/` を作成済み（各ディレクトリ 0700、README 0600）。VPSログ・秘密を含むファイルはここに置き、GitHubには入れない |
+| MCP 連携 | Claude Code → Codex は `codex mcp-server` で **Connected**。Codex → Claude Code は `claude mcp serve` を Codex に登録済み（新しい Codex タスクで読み込む） |
 
 ### リポジトリの状態
 
-- 作業ブランチ: `claude/code-x-claude-integration-qpewpu`
-- **`AGENTS.md` / `CLAUDE.md` / `docs/` は master にまだ入っていません。**
-  master を checkout すると指示書が消えます。必ず上記ブランチで作業してください。
-- master への取り込み方針は**ユーザー確認待ち**（下の「未決事項」参照）。
+- **master に `AGENTS.md` / `CLAUDE.md` / `docs/` / `ai/` が取り込み済み**
+  （`c646a8f Set up shared working environment for Codex and Claude Code (#2)`）。
+- 現在の作業ブランチ: `codex/ai-collaboration`（双方向MCPと相互レビューの実地検証）。
+- GitHub の fetch は HTTPS、push は SSH を使う。`git@github.com:tk4242/pictgram0909.git` への
+  `git ls-remote` は成功済み。`gh` のログインは未設定だが、通常の fetch / push には不要。
 
 ### 環境の制約（確認済みの事実）
 
 | 制約 | 内容 |
 | --- | --- |
-| Ruby | `Gemfile` が 2.4.1 を要求。新しい Ruby の環境では `bundle install` / `bundle check` が即失敗する（クラウド環境の Ruby 3.3.6 で実際に失敗を確認）。**つまりテストを実行できない環境がある** |
-| テスト実行 | 上記により、現時点で `bin/rails test` は**一度も実行できていない** |
-| SSH（クラウド側） | Claude Code on the web のコンテナには `ssh` / `scp` バイナリも `~/.ssh/id_ed25519` も存在しない。**VPS 作業はローカル実行の AI が担当する** |
-| VPS 詳細 | `root@160.251.137.210` に Python 環境がある、という以外は**未確認**。作業ディレクトリ名・systemd サービス名は `AGENTS.md` §6 で `<プレースホルダ>` のまま |
+| Ruby | この端末は Ruby 2.4.1 で `bundle check` が通る。ただし Rails 起動時に古い Ruby 拡張が `libcrypto.1.0.0.dylib` を要求して失敗するため、`bin/rails test` / `bin/rails routes` は未実行 |
+| Codex CLI レビュー | 起動・指示展開は確認済み。ただし `chatgpt.com` の TLS が `UnknownIssuer` となり、実モデル呼出しは失敗。証明書検証を無効化して回避してはいけない |
+| Claude Code CLI レビュー | `--permission-mode plan` の起動は確認済み。ただしこの端末では未ログインのため、実モデル呼出しは未実行 |
+| VPS | ローカルの SSH 鍵で接続可能。ホスト名 `vm-5f260c45-73.novalocal`、Python 3.12.11。稼働サービス名は下の最新エントリに記録。変更は一切していない |
 
 ### 未決事項（ユーザー判断待ち）
 
-1. **`AGENTS.md` を master に入れるか。** 現状ブランチ限定のため、毎回 checkout 指定が必要で
-   事故のもと。PR を作るか直接マージするか未定。
-2. **VPS の具体情報。** 作業ディレクトリ・サービス名・対象 Python ファイルが不明なため、
-   `AGENTS.md` §6 のコマンド例が埋まっていない。
-3. **Ruby バージョンを上げるか。** 上げればテストが動くが影響大。`AGENTS.md` §2 の方針どおり
-   ユーザー指示なしには実施しない。
+1. **Claude Code CLI をこの端末でログインするか。** ログイン後に `ai/claude-review.sh` の実レビューを行う。
+2. **Codex CLI の TLS 信頼チェーンをどう直すか。** `curl` は検証成功する一方 Codex は `UnknownIssuer`。社内プロキシ等のカスタムCAがある場合は、正規の信頼設定をユーザーと確認して行う。TLS無効化は禁止。
+3. **Ruby / OpenSSL の互換性をどう扱うか。** Ruby 2.4.1 を維持したまま Rails を実行できない。Ruby更新・コンテナ化は影響が大きいため、ユーザー指示なしには実施しない。
+4. **VPS の対象ディレクトリ・担当サービスをどれにするか。** サービス名は判明したが、各プロジェクトのソースパス・運用責任範囲は未確認。編集前に対象を特定してバックアップする。
 
 ---
 
@@ -247,3 +247,64 @@
 4. VPS の `ls -la` と `systemctl list-units --type=service --state=running` の
    結果を `ai/shared/vps-inventory.md` に置く。
    `AGENTS.md` §6 のプレースホルダを埋めるために必要。
+
+---
+
+### 2026-08-13 / Codex / codex/ai-collaboration
+
+**やったこと**
+
+- master を基準に `codex/ai-collaboration` を作成し、双方向の相互検証環境を実装した。
+  - `ai/setup-codex-integration.sh` は、Claude Code → Codex の
+    `codex mcp-server` に加え、Codex → Claude Code の `claude mcp serve` も登録する。
+  - `ai/claude-review.sh` を追加。Claude Code を `--permission-mode plan` で起動し、
+    変更を行わずレビューだけを `ai/shared/reviews/` に保存する。
+  - `ai/codex-review.sh` は、現行 Codex CLI が `review --uncommitted` と任意プロンプトを
+    併用できないため、`codex exec --sandbox read-only` に変更。§7 のチェック項目を
+    確実に渡すようにした。
+- `ai/setup-desktop.sh` を安全化した。共有フォルダは 0700、README は 0600 で作成し、
+  既存の README を上書きしない。`AI_SHARED_ROOT` を指定すれば別のローカルパスも使える。
+- `AGENTS.md` §7 と `ai/README.md` を更新し、レビュー出力の所有権・双方向 MCP・
+  新しい Codex タスクを開始して設定を読み込む必要があることを明記した。
+- VPS は読み取り専用でインベントリを取得した。稼働中には `crowd-approve.service`、
+  `hybrid-bot-shadow.service`、`ml-ultimate.service`、`multi-strategy-paper.service`、
+  `ohlc-1m-collector.service`、`proper_collector.service`、`square-tunnel.service` がある。
+  ファイル編集・サービス再起動・パッケージ操作はしていない。
+
+**検証**
+
+- 実行した: `bash -n ai/bootstrap.sh ai/setup-desktop.sh ai/setup-codex-integration.sh ai/codex-review.sh ai/claude-review.sh` → 構文 OK。
+- 実行した: `bash ai/bootstrap.sh` → 再実行時も既存 README を保持し、MCP を重複登録せず完了。
+- 実行した: `claude mcp get codex` → User scope、`codex mcp-server`、**Connected**。
+- 実行した: `codex mcp get claude --json` → `claude mcp serve` が enabled と確認。
+- 実行した: `git ls-remote git@github.com:tk4242/pictgram0909.git HEAD` →
+  `c646a8f59db73d166a224ce25a4a47118e7ec5e8` を取得。GitHub SSH は利用可能。
+- 実行した: `stat -f '%Mp%Lp %N' ~/Desktop/ai-shared ...` → 各ディレクトリ 0700、README 0600。
+- 実行した: `bundle check` → `The Gemfile's dependencies are satisfied`（終了コード 0）。
+  `bin/rails routes` は Ruby 2.4.1 の `digest/md5.bundle` が
+  `/usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib` を読めず失敗したため、テストは未実行。
+- 実行した: `ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes root@160.251.137.210 true` → 終了コード 0。
+- 実行した: `ssh -i ~/.ssh/id_ed25519 root@160.251.137.210 'hostname; systemctl list-units --type=service --state=running --no-pager --no-legend | awk "{print $1}"; python3 --version'` →
+  ホスト名・サービス一覧・Python 3.12.11 を読み取り専用で確認。
+- 実行を試みた: `bash ai/codex-review.sh --uncommitted` → レビュー指示の展開までは成功したが、
+  Codex CLI が `chatgpt.com` の TLS を `UnknownIssuer` として拒否し、モデル呼出しは失敗。
+- 実行を試みた: `bash ai/claude-review.sh --uncommitted` → `Not logged in · Please run /login`。
+  `--permission-mode plan` と引数境界は正常に解釈された。どちらも**実レビューは未実行**。
+
+**決めたこと / 申し送り**
+
+- GitHub 上で共有する会話・決定・レビュー結論は引き続き本ファイルに要約する。
+  ローカル生成物は Git 管理外の `~/Desktop/ai-shared/`、レビュー原文は ignored な
+  `ai/*/reviews/` を使う。秘密鍵・APIキー・パスワードはどちらにも入れない。
+- Codex / Claude Code を MCP で呼ぶ依頼は、原則としてレビュー・検証・指摘に限る。
+  相手 AI 経由で無断編集、Git push、VPS 操作を行わせない。
+- Codex CLI の TLS を `--insecure` 等で回避しない。正常な証明書信頼設定を特定できるまで、
+  CLIレビューは「実行不能」と明記する。
+
+**次にやってほしいこと（→ ユーザー / Claude Code / Codex）**
+
+1. Claude Code をこの端末で `claude` を起動して `/login` し、`bash ai/claude-review.sh master` を実行する。
+2. Codex CLI の `UnknownIssuer` は、プロキシ・カスタムCAの有無を確認して正規の信頼設定を決める。
+   設定後に新しい Codex タスクを開始し、`bash ai/codex-review.sh master` を再実行する。
+3. VPSを編集する案件では、対象ソースのパスと担当サービスを本ファイルに記録してから、
+   AGENTS.md §6 のバックアップ・構文検証・再起動確認の手順に進む。
