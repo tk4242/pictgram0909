@@ -10,25 +10,26 @@
 
 ---
 
-## 現在の状況（最終更新: 2026-08-13 / Claude Code）
+## 現在の状況（最終更新: 2026-08-14 / Claude Code）
 
 ### 体制
 
 | 項目 | 状態 |
 | --- | --- |
 | Claude Code | 稼働中。ここまでの作業はすべて Claude Code が実施 |
-| Codex | **導入直後。プロジェクトの経緯をまだ把握していない** |
+| Codex | 導入手順は用意済み。**実際にローカルでセットアップ・レビュー実行したかは未確認** |
 | 作業ディレクトリ（Codex） | `/Users/tk/Documents/Codex/pictgram0909` |
-| 共通指示書 | `AGENTS.md`（唯一の情報源） |
+| 共通指示書 | `AGENTS.md`（唯一の情報源。master に反映済み） |
 | 作業フォルダ | `ai/shared/` `ai/codex/` `ai/claude/`（AGENTS.md §9） |
-| 共有フォルダ（git 管理外） | `~/Desktop/ai-shared/`。**未作成。** `bash ai/setup-desktop.sh` をローカルで実行して作る |
+| 共有フォルダ（git 管理外） | `~/Desktop/ai-shared/`。`bash ai/setup-desktop.sh` で作成。**実行済みか未確認** |
+| セッション開始/終了の自動同期 | `AGENTS.md` §5。Claude Code はフックで強制、Codex は指示のみ |
 
 ### リポジトリの状態
 
-- 作業ブランチ: `claude/code-x-claude-integration-qpewpu`
-- **`AGENTS.md` / `CLAUDE.md` / `docs/` は master にまだ入っていません。**
-  master を checkout すると指示書が消えます。必ず上記ブランチで作業してください。
-- master への取り込み方針は**ユーザー確認待ち**（下の「未決事項」参照）。
+- **`AGENTS.md` / `CLAUDE.md` / `docs/` / `ai/` は master に反映済み**（PR #2, `c646a8f`）。
+  `git checkout master && git pull` すればどちらの AI も指示書を読める。
+- 作業は現状 `claude/code-x-claude-integration-qpewpu` ブランチで続けているが、
+  今後の作業は master から都度ブランチを切る運用に移行してよい。
 
 ### 環境の制約（確認済みの事実）
 
@@ -36,17 +37,20 @@
 | --- | --- |
 | Ruby | `Gemfile` が 2.4.1 を要求。新しい Ruby の環境では `bundle install` / `bundle check` が即失敗する（クラウド環境の Ruby 3.3.6 で実際に失敗を確認）。**つまりテストを実行できない環境がある** |
 | テスト実行 | 上記により、現時点で `bin/rails test` は**一度も実行できていない** |
-| SSH（クラウド側） | Claude Code on the web のコンテナには `ssh` / `scp` バイナリも `~/.ssh/id_ed25519` も存在しない。**VPS 作業はローカル実行の AI が担当する** |
+| SSH（クラウド側） | Claude Code on the web のコンテナには `ssh` / `scp` バイナリも `~/.ssh/id_ed25519` も存在しない。**VPS 作業・ローカル PC 操作はローカル実行の AI が担当する**（クラウド側からは経路が無い） |
 | VPS 詳細 | `root@160.251.137.210` に Python 環境がある、という以外は**未確認**。作業ディレクトリ名・systemd サービス名は `AGENTS.md` §6 で `<プレースホルダ>` のまま |
+| Codex のフック機構 | **存在しない。** `AGENTS.md` §5 のセッション開始/終了ルールは、Codex にとっては
+  強制されない指示にとどまる（Claude Code は `.claude/settings.json` のフックで強制） |
 
 ### 未決事項（ユーザー判断待ち）
 
-1. **`AGENTS.md` を master に入れるか。** 現状ブランチ限定のため、毎回 checkout 指定が必要で
-   事故のもと。PR を作るか直接マージするか未定。
-2. **VPS の具体情報。** 作業ディレクトリ・サービス名・対象 Python ファイルが不明なため、
+1. **VPS の具体情報。** 作業ディレクトリ・サービス名・対象 Python ファイルが不明なため、
    `AGENTS.md` §6 のコマンド例が埋まっていない。
-3. **Ruby バージョンを上げるか。** 上げればテストが動くが影響大。`AGENTS.md` §2 の方針どおり
+2. **Ruby バージョンを上げるか。** 上げればテストが動くが影響大。`AGENTS.md` §2 の方針どおり
    ユーザー指示なしには実施しない。
+3. **セッション終了時の自動 push は動作未確認。** `.claude/settings.json` の
+   フックは構文検証・使い捨てリポジトリでのロジック検証のみ。この実リポジトリの
+   実セッションで実際に fire するかは未確認（次のセッション終了で確認できる）。
 
 ---
 
@@ -247,3 +251,69 @@
 4. VPS の `ls -la` と `systemctl list-units --type=service --state=running` の
    結果を `ai/shared/vps-inventory.md` に置く。
    `AGENTS.md` §6 のプレースホルダを埋めるために必要。
+
+---
+
+### 2026-08-14 / Claude Code / master
+
+**やったこと**
+
+- **セッション開始/終了の自動同期**を導入した。目的は「チャットの途中でこまめに
+  push すると事故が起きやすいので、開始と終了の 2 点にまとめる」というユーザーの
+  方針をそのまま仕組みにすること。
+- `ai/hooks/session-start.sh` — `git fetch` → `git pull --ff-only`。
+  未コミットの変更が残っていれば pull しない。fast-forward できなければ何もしない。
+- `ai/hooks/session-end.sh` — 変更があれば `git add -A` → commit → 現在の
+  作業ブランチへ push。**`master`/`main`/detached HEAD では絶対にコミットしない**
+  （ガード節で早期 return）。
+- `.claude/settings.json` を新規作成し、上記 2 本を `SessionStart` / `SessionEnd`
+  フックとして登録。Claude Code のセッションではこれが機械的に強制される。
+- `AGENTS.md` §5 に「セッション開始・終了ルール」を追加。**master への自動マージは
+  意図的に対象外にした**（ユーザーに確認したところ「連携できれば何でも良い」との
+  回答だったため、直前に決めた PR ベースの相互レビュー方針（§7）を壊さない方の
+  安全側の解釈を採用: 作業ブランチへの commit+push までを自動化し、master への
+  反映は引き続き PR 経由とした）。
+- Codex にはフック機構が無いため、同じ内容を「指示として厳守する」節として
+  §5 に明記した。Claude Code のような強制力は無いことも明記。
+- `ai/hooks/session.log`（フックの実行ログ、git 管理外）を `.gitignore` に追加。
+
+**検証**
+
+- 実行した: `bash -n ai/hooks/session-start.sh` `bash -n ai/hooks/session-end.sh`
+  → 構文 OK。
+- 実行した: `jq -e` で `.claude/settings.json` の hooks 構造を検証 → OK。
+- 実行した: 使い捨てのスクラッチ git リポジトリ（bare remote + 複数 clone）で
+  以下をすべて実際に再現して確認した。
+  - master ブランチ上での `session-end.sh` → コミットせず拒否のメッセージのみ。
+  - 未コミットの変更がある状態での `session-start.sh` → pull せずスキップ。
+  - 作業ブランチで変更がある状態での `session-end.sh` → commit + push が成功し、
+    リモートに新しいブランチとして反映されることを確認。
+  - 作業ブランチが履歴分岐している状態での `session-start.sh` → 強制せず
+    「pull できませんでした」で安全に諦めることを確認。
+  - 検証の過程で `ai/hooks/session.log` が `git add -A` に拾われてコミットに
+    混入する不具合を発見し、`.gitignore` で修正した。
+- 実行できなかった: **実際の Claude Code セッションでフックが発火するかの確認。**
+  `update-config` スキルの手順上、`SessionStart` / `SessionEnd` はこのターンの
+  外側で発火するため、今回のターン内では証明できない
+  （スキル手順のいう「settings watcher」の制約）。**次にセッションを開始/終了
+  したときに、`ai/hooks/session.log` が更新されているかで確認できる。**
+  ここが実際に動くまでは、手動での `git pull` / commit / push も念のため
+  続けることを推奨する。
+
+**決めたこと / 申し送り**
+
+- **master への自動マージはしない。** チャット終了時に自動化されるのは
+  「作業ブランチへの commit + push」まで。master 反映は PR 経由のまま。
+- **CLAUDE.md の内容を AGENTS.md にコピーする必要は無いと判断した。**
+  すでに `AGENTS.md` が唯一の情報源で `CLAUDE.md` はそれを指すだけなので、
+  Codex は `AGENTS.md` を読めば同じルールに到達できる。逆方向のコピー
+  （CLAUDE.md へ複製）は二重管理の事故元になるため行っていない。
+- **Codex 側は強制力が無い。** ユーザーが Codex セッションを始めるときは
+  「AGENTS.md の開始/終了ルールに従って」と明示的に伝えるのが確実。
+
+**次にやってほしいこと（→ ユーザー / Codex）**
+
+- 次に Claude Code のセッションを終了したとき、本当に commit + push されたか
+  ターミナルの通知メッセージと `ai/hooks/session.log` を確認する。
+- Codex 側では、セッション開始時に手動で `git pull` を、終了時に手動で
+  commit + push を行う運用を当面続ける（フックが無いため）。
