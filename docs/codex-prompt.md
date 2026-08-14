@@ -6,6 +6,18 @@ Codex（`codex` CLI / Codex Web）に貼り付けて使うプロンプトです�
 Claude Code 側に同じ役割を振るときは、`Codex` → `Claude Code`、
 `codex/` → `claude/` に読み替えてください。
 
+## 毎回のセッションで必ず守らせること（AGENTS.md §5）
+
+Claude Code はセッション開始/終了時の `git pull` / commit+push が
+フックで強制されていますが、**Codex にはフック機構が無いため、
+毎回のプロンプトで明示的に指示する必要があります。**
+以下の 2 行を、どのプロンプトにも実質的に含めてください（下の各テンプレートは
+既に含んでいます）。
+
+- セッションの最初に `git fetch origin && git pull` を実行させる
+- セッションの最後に、作業ブランチへ commit + push させる
+  （**master への自動マージはさせない。** master は引き続き PR 経由）
+
 ---
 
 ## 1. 初回セットアップ / 引き継ぎ（最初の 1 回だけ）
