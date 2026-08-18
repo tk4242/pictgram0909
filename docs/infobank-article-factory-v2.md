@@ -2,6 +2,14 @@
 
 対象：Claude Code / Claude Agent SDK / Canva MCP / Magnific MCP・API / Notion API / VPS / Python
 基準日：2026-08-18
+レビュー：`docs/infobank-article-factory-v2-review.md`（BLOCKER 2件・MAJOR 6件は本文に反映済み）
+
+## 確定事項（2026-08-18 ユーザー確認済み）
+
+1. **公開/会員比率**：公開 ≒ 2/3、会員限定 ≒ 1/3（v1のNotion転記どおり。v2.0初版の記述は反転していたため修正済み）
+2. **サムネイル**：1記事につき**1枚**。3パターン（TYPE A/B/C）を記事ごとに交互使用。デザイン変更不可、文字と色味のみ変更
+3. **ブランド表記**：「**InfoBank**」に統一。図表出所は「InfoBank作成」／「〜をもとにInfoBank作成」。InfoBase表記が混入したら `BRAND_NAME_CONFLICT`
+4. **テスト記事（Phase 7 E2E）**：既存ABCマート一式（`samples/2026-08-18_abcmart/`）を充当
 関連資料：`docs/infobank-article-automation.md`（v1検討レポート）、`docs/pipeline-design.md`（v1技術設計）
 根拠資料：会員限定記事の設定方法.pdf ／ グラフ・図表作成のテンプレート_0602 (1).pptx（133スライド）／ InfoBankサムネイル参考画像3点
 
@@ -99,12 +107,15 @@ MEMBER CONTENT
 取得済み要件（暫定Hard Rule）：
 
 ```
-記事タイトル：26〜28文字
-納品：PPTX
-会員限定：約2/3
-Canva：3パターン
-主情報源：NNA
-画像制作：Magnific
+記事タイトル：26〜28文字（「ベトナム」+象徴キーワード必須、複数案生成）
+本文：1,500文字程度、H2複数+SEOキーワード
+メタディスクリプション：80〜90文字
+図表：2枚程度/記事、pptx形式で納品
+公開設定：全体の約2/3を公開、残り約1/3を無料会員限定
+サムネイル：Canvaの3パターンを交互使用（1記事1枚。デザイン変更不可、文字と色味のみ変更）
+主情報源：NNA（自動ログイン・自動取得は実装しない。本文は手動テキスト投入）
+Magnific：画像高解像度化が主用途（AI生成を使う場合もproviderはMagnificに限定）
+納品先：テスト段階=Notion／本番=WordPress
 ```
 
 指定Notion URLをクラウド環境から再取得できなかったため、本番運用開始時にNotion APIで再取得して確定させる。NotionはページをMarkdownとして取得するAPI（`GET /v1/pages/:page_id/markdown`、Enhanced Markdown）を提供している。
@@ -125,8 +136,11 @@ Notion → rules.md → Rule Parser → rules.yaml → hash
   "article_title_min": 26,
   "article_title_max": 28,
   "figure_key_message_max": 28,
-  "member_ratio_target": 0.6667,
-  "canva_variants": 3,
+  "free_ratio_target": 0.6667,
+  "free_ratio_tolerance": [0.60, 0.70],
+  "thumbnails_per_article": 1,
+  "thumbnail_patterns": ["A", "B", "C"],
+  "brand_display_name": "InfoBank",
   "image_generator": "magnific",
   "human_review_required": true
 }
@@ -225,12 +239,14 @@ figure_title_lines == 1
 
 ## 15. 会員限定比率
 
-`free ≒ 1/3、member ≒ 2/3` を構造的に作る。記事JSONを最初から `free_sections` / `member_sections` に分ける。文字列を2/3地点で機械的に切断しない。
+**`free ≒ 2/3、member ≒ 1/3`**（確定事項1）を構造的に作る。記事JSONを最初から `free_sections` / `member_sections` に分ける。文字列を機械的に切断しない。
 
-公開部分：ニュース概要／重要ポイント／なぜ重要なのか。
-会員部分：分析・数字・市場背景・今後の示唆。
+公開部分：ニュース概要／重要ポイント／背景・経緯（本文の60〜70%）。
+会員部分：分析・数字の深掘り・市場背景・今後の示唆（残り30〜40%）。
 
-添付PDFは会員限定比率を定義しておらず、ショートコードの設定方法のみ規定。2/3算定法はNotionルール再取得後に最終確定する。
+validator：NFC正規化後の文字数で `0.60 <= free/total <= 0.70`（前回サンプルのG01と同一基準）。
+
+添付PDFは会員限定比率を定義しておらず、ショートコードの設定方法のみ規定。
 
 ## 16. Magnificを画像生成の唯一のAI画像系統にする
 
@@ -269,8 +285,12 @@ Canva Remote MCPはデザイン作成・編集・検索、アセット管理、B
 
 ```
 Magnific → background.png → Canva（title/logo/label/frame/brand colors）
-        → thumbnail_A / thumbnail_B / thumbnail_C
+        → thumbnail 1枚（TYPE A/B/Cを記事ごとにローテーション）
 ```
+
+注意（外部仕様検証済み）：テンプレートへのデータ流し込み（brand template dataset + autofill）は
+**Canva Enterprise限定**、Brand Template系ツールは**Pro以上**。プランをPhase 0で確認し、
+Enterpriseでない場合は「デザイン複製＋edit-designによるテキスト置換」をフォールバックとする。
 
 ## 20. Canva Dev MCPとRemote MCPを混同しない
 
@@ -287,7 +307,9 @@ claude mcp add --transport http --scope project magnific https://mcp.magnific.co
 
 ## 22. Canva 3パターン
 
-同じデザインの色違い3案は禁止。参考画像から抽出したstyle archetype：
+**1記事につきサムネイルは1枚**（確定事項2）。3パターンを記事ごとに交互使用し、デザインは変更せず文字と色味のみ差し替える。直近記事とパターンが重複しないことをvalidatorで検証する（`thumbnail_pattern_rotation`）。
+
+参考画像から抽出したstyle archetype：
 
 - **TYPE A（ニュース・経済型）**：複数写真コラージュ／強い帯／大型数字／大型タイトル／InfoBankロゴ
 - **TYPE B（企業・ESG型）**：企業ロゴ／大きな背景写真／ブランドカラー／白いタイトルボックス／InfoBankロゴ
@@ -337,7 +359,9 @@ Original PPTX → Template Index → slide archetype選択 → 複製 → 文字
 
 ## 28. ブランド名の不整合
 
-添付PPTXには `InfoBank` と `InfoBase` の両表記が存在する（例：スライド2はInfoBank、スライド31はInfoBase）。コードへ名称を直書きせず、正式表記を確定してからHard Gateにする。混在した場合は `BRAND_NAME_CONFLICT` とする。
+添付PPTXには `InfoBank`（14回：スライド2, 4-11, 35, 36, 115。うち小文字`Infobank` 2回）と `InfoBase`（8回：スライド31, 119-124, 129, 133）の両表記が存在する。
+
+**正式表記は「InfoBank」に確定**（確定事項3）。`brand.yaml` に `display_name: InfoBank` を定義し、成果物（本文・図表・サムネイル）に `InfoBase` / `Infobank`（小文字）が混入した場合は `BRAND_NAME_CONFLICT` とする。テンプレート原本のInfoBase表記スライドを流用する際は出所行・ロゴを必ず置換する。
 
 ## 29. Article Schema
 
@@ -390,11 +414,19 @@ Stop前           → final_gate.py
 ```
 RULE_HASH_VALID / SOURCE_AVAILABLE / RESEARCH_COMPLETE
 ZERO_UNSUPPORTED_CLAIMS / ZERO_SOURCE_CONFLICT
-ARTICLE_TITLE_VALID / FIGURE_KEY_MESSAGE_VALID / FIGURE_TITLE_ONE_LINE
-MEMBER_STRUCTURE_VALID / CITATION_VALID
-MAGNIFIC_USED / CANVA_VARIANTS == 3 / LOGO_VALID
+ARTICLE_TITLE_VALID（26-28字・「ベトナム」含有・3案以上）
+META_DESCRIPTION_VALID（80-90字） / BODY_LENGTH_VALID（1,500字±15%）
+H2_VALID（2本以上・キーワード含有） / FIGURE_COUNT_VALID（2枚程度）
+FIGURE_KEY_MESSAGE_VALID / FIGURE_TITLE_ONE_LINE
+FREE_RATIO_VALID（公開60-70%） / CITATION_VALID / BRAND_VALID（InfoBankのみ）
+IMAGE_PROVIDER_VALID（生成画像が存在する場合はprovider==magnific）
+THUMBNAIL_VALID（1枚・パターンローテーション） / LOGO_VALID
 PPTX_VALID / VISUAL_QA_VALID
 ```
+
+テストモード規定：外部接続に依存するゲート（RULE_HASH_VALID / IMAGE_PROVIDER_VALID）は
+テストモードでスタブ可。事実系ゲート（ZERO_UNSUPPORTED_CLAIMS / CITATION_VALID /
+BRAND_VALID）と定量系ゲートは免除不可。
 
 ## 33. Visual QA
 
