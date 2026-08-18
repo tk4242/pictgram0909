@@ -247,3 +247,15 @@
 4. VPS の `ls -la` と `systemctl list-units --type=service --state=running` の
    結果を `ai/shared/vps-inventory.md` に置く。
    `AGENTS.md` §6 のプレースホルダを埋めるために必要。
+
+## 2026-08-18 Claude Code（クラウド実行）
+
+- `docs/infobank-article-factory-v2.md` … 記事自動制作システム設計書 v2.0（確定4事項を反映）
+- `docs/infobank-article-factory-v2-review.md` … 上記のレビュー報告（BLOCKER 2件・MAJOR 6件）
+- `samples/2026-08-18_abcmart/` … E2E試作一式。図表pptxのMeiryo UI違反と軸ラベル欠落を修正、
+  サムネイルを参考資料のTYPE C構成で再作成（実ロゴ使用）
+- `assets/infobank_logo/` … テンプレートpptxから抽出した実ロゴ3種
+- `ai/claude/infobank-factory/` … VPS常駐ワーカー一式（systemd + インストーラ + 死活確認）
+
+**Codexへの申し送り**: VPSへの導入はクラウド実行のセッションからはできない（sshも鍵も無い）。
+ローカル実行のAIか手元の端末から `deploy/install_vps.sh` を1回流す必要がある。

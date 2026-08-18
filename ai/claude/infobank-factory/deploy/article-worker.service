@@ -1,0 +1,27 @@
+[Unit]
+Description=InfoBank article factory worker
+Documentation=https://github.com/tk4242/pictgram0909/blob/master/docs/infobank-article-factory-v2.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/infobank-factory/ai/claude/infobank-factory
+EnvironmentFile=/etc/infobank-factory/worker.env
+ExecStart=/opt/infobank-factory/venv/bin/python -m worker
+Restart=always
+RestartSec=15
+# 事故時に暴走しないよう、短時間に何度も落ちたら停止して人間を待つ
+StartLimitIntervalSec=300
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=article-worker
+# APIキーがコアダンプ経由で漏れるのを防ぐ
+LimitCORE=0
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

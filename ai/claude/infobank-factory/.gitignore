@@ -1,0 +1,6 @@
+# ジョブの実体データと成果物はリポジトリに入れない（設計書§38）
+data/
+artifacts/
+# 実案件のキューも入れない。EXAMPLE_ 以外は無視する
+queue/*
+!queue/EXAMPLE_*.txt
