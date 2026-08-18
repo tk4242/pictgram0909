@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:2048px;height:1152px;overflow:hidden}
+  .stage{position:relative;width:2048px;height:1152px;background:#111;font-family:"IPAPGothic","Noto Sans CJK JP",sans-serif}
+  .photo{position:absolute;inset:0;background:url("photo_clean.png") center 45%/cover no-repeat}
+  /* ── 色味テーマ（パターンBの緑→ABCマートの赤へ。デザイン構造は不変） ── */
+  .sweep{position:absolute;background:linear-gradient(120deg,#B00E23 0%,#E8432E 55%,#F4713C 100%)}
+  .sw-topleft{left:-140px;top:-260px;width:1050px;height:520px;border-radius:0 0 52% 48%/0 0 100% 90%}
+  .sw-topright{right:-200px;top:-300px;width:900px;height:560px;border-radius:0 0 45% 55%/0 0 85% 100%}
+  .sw-bottomright{right:-240px;bottom:-380px;width:1500px;height:760px;border-radius:55% 45% 0 0/95% 100% 0 0}
+  .sw-bottomleft{left:-220px;bottom:-320px;width:900px;height:640px;border-radius:48% 52% 0 0/100% 88% 0 0}
+  /* ── 企業ロゴ枠（左上・白） ── */
+  .logo-co{position:absolute;left:0;top:26px;width:740px;height:172px;background:#fff;display:flex;align-items:center;justify-content:center;gap:26px}
+  .logo-co .brand{background:#E60012;color:#fff;font-weight:800;font-size:92px;letter-spacing:3px;font-family:Arial,Helvetica,sans-serif;font-style:italic;padding:18px 46px;border-radius:8px}
+  /* ── InfoBankロゴ枠（右上・黒） ── */
+  .logo-ib{position:absolute;right:0;top:0;width:700px;height:190px;background:#0B1524;display:flex;align-items:center;justify-content:center;gap:24px}
+  .logo-ib .check{width:120px;height:120px;background:#fff;display:flex;align-items:center;justify-content:center}
+  .logo-ib .check span{color:#0B1524;font-size:104px;font-weight:900;line-height:1}
+  .logo-ib .t{color:#fff;font-size:104px;font-weight:700;font-family:Georgia,"Times New Roman",serif}
+  /* ── タイトル白帯（下段2段） ── */
+  .t1{position:absolute;left:96px;bottom:300px;background:#fff;padding:26px 60px 26px 48px}
+  .t1 span{font-size:96px;font-weight:800;color:#151515;letter-spacing:4px}
+  .t2{position:absolute;left:40px;bottom:78px;background:#fff;padding:30px 70px 30px 56px}
+  .t2 span{font-size:140px;font-weight:800;color:#151515;letter-spacing:4px}
+</style></head><body>
+<div class="stage">
+  <div class="photo"></div>
+  <div class="sweep sw-topleft"></div>
+  <div class="sweep sw-topright"></div>
+  <div class="sweep sw-bottomright"></div>
+  <div class="sweep sw-bottomleft"></div>
+  <div class="logo-co"><div class="brand">ABC-MART</div></div>
+  <div class="logo-ib"><div class="check"><span>✓</span></div><div class="t">InfoBank</div></div>
+  <div class="t1"><span>ABCマートがイオンモールへ</span></div>
+  <div class="t2"><span>ベトナム5号店、29日開業</span></div>
+</div>
+</body></html>
