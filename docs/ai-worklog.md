@@ -259,3 +259,24 @@
 
 **Codexへの申し送り**: VPSへの導入はクラウド実行のセッションからはできない（sshも鍵も無い）。
 ローカル実行のAIか手元の端末から `deploy/install_vps.sh` を1回流す必要がある。
+
+## 2026-08-18 Claude Code（クラウド実行・続き）
+
+前回セッションで中断していた作業を再開し、以下を完了。
+
+- `docs/infobank-article-factory-v2-review.md` のBLOCKER 2件は前回で確定・反映済みだったが、
+  MAJOR 6件・MINOR 8件の大半が**設計書本文への反映待ちのまま放置**されていた。今回すべて反映：
+  Magnificゲートの条件付き化、v1定量要件（T/M/B/F rule_id）の§13-14統合、NNA権利確認の復活、
+  delivery/層の復活、状態×失敗×復帰対応表の追加、figure_title_linesの2段階検証、
+  スキーマの改名・整合性修正など。詳細は `docs/infobank-article-factory-v2-review.md` 末尾の
+  「対応状況」表を参照。
+- 副産物として、設計書§34の状態名（`MAGNIFIC_READY`/`CANVA_3_READY`）と実装済みの
+  `ai/claude/infobank-factory/worker/state.py`（`IMAGE_READY`/`THUMBNAIL_READY`）の
+  食い違いを発見し、実装側に統一した。
+- 前回「`attempts`カラムでリトライ上限を実装済み」と書いたのは誤り（全遷移で加算される
+  総カウンタに過ぎず、失敗種別ごとの制御ロジックは無い）。設計書に「未実装」と訂正した。
+
+**次にやるべきこと**：Phase 2（Research Factory: source-analyst / primary-researcher /
+independent-researcher / evidence-compiler と Evidence Ledgerの実コード）に着手する。
+6時間ごとの自動継続Routine（trig_01H3huSVgAC53nY3kWFFJXrc）がこれを進める設計だが、
+MCPコネクタ（Canva等）は引き継がれないため、Canvaが要る工程は手動セッションで行うこと。
