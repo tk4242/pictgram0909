@@ -1,0 +1,234 @@
+[
+  {
+    "claim_id": "C001",
+    "claim": "ABCマート（エービーシー・マート）は2026年8月29日、ホーチミン市の商業施設「イオンモール・タンフーセラドン」にベトナム5号店を開く",
+    "claim_type": "date",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C002",
+    "claim": "今回の出店はABCマートにとってイオンモールへの初出店である",
+    "claim_type": "fact",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C003",
+    "claim": "新店の名称は「ABCマート グランドステージ イオンモール タンフーセラドン店」",
+    "claim_type": "name",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C004",
+    "claim": "新店の総面積は454平方メートル",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C005",
+    "claim": "新店は20ブランドを取り扱う",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C006",
+    "claim": "新店はベトナム国内最大級というキッズコーナーを備える",
+    "claim_type": "fact",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C007",
+    "claim": "2023年開業のサイゴンセンター店の面積は489平方メートル",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C008",
+    "claim": "イオンモール・タンフーセラドンは2014年1月に開業したイオンモールのベトナム1号店",
+    "claim_type": "date",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C009",
+    "claim": "イオンモールはベトナムで8施設を運営している",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C010",
+    "claim": "イオンは2030年度末までにベトナムのショッピングセンターを30カ所へ増やす計画を示している",
+    "claim_type": "forecast",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C011",
+    "claim": "ABCマートのベトナム進出は2022年10月、ホーチミン市1区に東南アジア初の店を構えたのが始まり",
+    "claim_type": "date",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C012",
+    "claim": "2023年に4店を相次いで開き、9月のサイゴンセンター店で店舗網は5店に広がった",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C013",
+    "claim": "1号店にあたるドンコイ店が契約条件の都合で2026年1月に閉店し、2026年3月末時点の店舗数は4店",
+    "claim_type": "date",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C014",
+    "claim": "2025年7月の行政再編でビンズオン省がホーチミン市に統合された",
+    "claim_type": "policy",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C015",
+    "claim": "2026年4月公表のIR資料で、ベトナムとフィリピンは韓国・台湾より前の「パイロットショップ／トライアル出店」の段階に置かれている",
+    "claim_type": "fact",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C016",
+    "claim": "ABCマートは海外売上比率をグループの半分以上へ引き上げる目標を掲げている",
+    "claim_type": "forecast",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C017",
+    "claim": "ユニクロのベトナム店舗数は32店（2026年7月時点）",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C018",
+    "claim": "無印良品のベトナム店舗数は17店（2025年11月時点）",
+    "claim_type": "number",
+    "section": "F",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C019",
+    "claim": "2022年10月の発表時、ABCマートは2023年度までに6店を出す計画を示していた",
+    "claim_type": "forecast",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C020",
+    "claim": "2023年にサイゴンセンター店が「5号店」と報じられていた",
+    "claim_type": "fact",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C021",
+    "claim": "ABCマートのベトナム売上高は6億8,800万円で連結売上高の0.2％（海外子会社は12月決算のため2025年1〜12月）",
+    "claim_type": "number",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C022",
+    "claim": "2026年3月末の店舗数は韓国317店・台湾63店・ベトナム4店",
+    "claim_type": "number",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C023",
+    "claim": "IR資料はベトナムの中期目標として20店を掲げている",
+    "claim_type": "forecast",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C024",
+    "claim": "2026年秋にグランドステージ業態で2店を出す計画が示されている",
+    "claim_type": "forecast",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C025",
+    "claim": "そのうち1店は2026年内に開くイオンモール・ビンタン店とされる（現地報道）",
+    "claim_type": "forecast",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C026",
+    "claim": "ホーチミン市の小売・消費サービス売上高は2026年1〜7月に前年同期比13.3％増（旧ビンズオン省などを含む新市域ベース）",
+    "claim_type": "number",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C027",
+    "claim": "2025年の皮革・履物・かばん産業の輸出額は約290億ドルに達し、うち靴が240億ドル超を占めた",
+    "claim_type": "number",
+    "section": "X",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C028",
+    "claim": "図表1: ABCマートの海外店舗数（2026年3月末時点）フィリピン2・米国7・ベトナム4・台湾63・韓国317",
+    "claim_type": "number",
+    "section": "G",
+    "status": "UNVERIFIED",
+    "evidence": []
+  },
+  {
+    "claim_id": "C029",
+    "claim": "図表2: 日系専門店チェーンのベトナム店舗数 ユニクロ32・無印良品17・ABCマート5",
+    "claim_type": "number",
+    "section": "G",
+    "status": "UNVERIFIED",
+    "evidence": []
+  }
+]
