@@ -345,6 +345,13 @@ Original PPTX → Template Index → slide archetype選択 → 複製 → 文字
 
 既存chartがある場合は `既存chart style + replace_data()` を優先し、見た目を保持しながらデータだけ差し替える。可能な限りPNG貼り付けではなくPowerPoint chartを維持する。
 
+**注意（E2E試作で判明）**: 「テンプレートを流用すれば書式は保たれる」は成り立たない。
+原本の過去事例スライドは typeface を持たず、テーマ（Calibri / Segoe UI / 游ゴシック）へ
+暗黙にフォールバックする。Meiryo UI を明示している定義スライドは基本テンプレート（slide2）だけ。
+したがって生成後に **latin / ea / cs の3系統へ `Meiryo UI` を明示指定**し、
+生成物のXMLを直接検査して `FONT_VALID` を判定すること。
+同様に軸ラベルは規定どおり14ptへ揃える（24ptのままだとレンダラーが項目ラベルを間引く）。
+
 ## 27. PPTX Template Registry
 
 最初に1回だけPPTXを解析しregistryを作成する。以後Claudeに133スライド全部を毎回読ませない。
@@ -417,7 +424,7 @@ ZERO_UNSUPPORTED_CLAIMS / ZERO_SOURCE_CONFLICT
 ARTICLE_TITLE_VALID（26-28字・「ベトナム」含有・3案以上）
 META_DESCRIPTION_VALID（80-90字） / BODY_LENGTH_VALID（1,500字±15%）
 H2_VALID（2本以上・キーワード含有） / FIGURE_COUNT_VALID（2枚程度）
-FIGURE_KEY_MESSAGE_VALID / FIGURE_TITLE_ONE_LINE
+FIGURE_KEY_MESSAGE_VALID / FIGURE_TITLE_ONE_LINE / FONT_VALID（Meiryo UI）
 FREE_RATIO_VALID（公開60-70%） / CITATION_VALID / BRAND_VALID（InfoBankのみ）
 IMAGE_PROVIDER_VALID（生成画像が存在する場合はprovider==magnific）
 THUMBNAIL_VALID（1枚・パターンローテーション） / LOGO_VALID
@@ -482,6 +489,19 @@ Ubuntu / Python 3.11+ / Claude Agent SDK / LibreOffice / SQLite / systemd
 ```
 
 常駐処理：`article-worker.service`。Claude Code CLIではなくPython workerを常時起動する。
+
+実装は `ai/claude/infobank-factory/`（導入手順は同ディレクトリの README）。
+
+- `deploy/install_vps.sh` … 冪等なインストーラ。LibreOffice・和文フォント・venv・
+  Meiryo UI代替のfontconfigまで用意する。`worker.env` は上書きしない
+- `deploy/article-worker.service` … `Restart=always` で自動復帰。ただし短時間に連続失敗したら
+  停止して人間を待つ（暴走防止）。`LimitCORE=0` でコアダンプ経由の鍵漏洩も塞ぐ
+- `worker/state.py` … 状態をSQLiteに保存。プロセスが落ちても再起動で続きから再開する。
+  `source_url` のUNIQUE制約で同一記事の二重処理を防ぐ（§37）
+- `deploy/healthcheck.sh` … 死活・再起動回数・ジョブ状態・人間レビュー待ち件数を1画面で確認
+
+**クラウド実行のセッションからVPSへは導入できない**（`ssh` クライアントも鍵も存在しない）。
+導入はローカル実行のAIか手元の端末から1回だけ行う（AGENTS.md §6）。
 
 ## 37. Queue
 
