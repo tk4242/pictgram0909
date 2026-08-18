@@ -1,9 +1,20 @@
 {
-  "provider": "canva_generated_placeholder",
-  "note": "Magnificアカウント未共有のため仮画像（テストモード: IMAGE_PROVIDER_VALIDはスタブ）",
-  "design_id": "DAHSp1aTUXc",
-  "pattern": "B",
-  "edit_url": "https://www.canva.com/d/cCyTNn0rNT9FpIN",
-  "exported": "thumbnail_e2e_canva.png",
-  "sha256": "d169cf8c4c9e9d3022782ec8e1ae5ab85b3b075c0802ca21d219346a2f28aa6f"
+  "pattern": "C",
+  "pattern_name": "解説型（参考画像3点から抽出したTYPE C）",
+  "composer": "make_thumbnail.py（Python/PILで決定論的に合成）",
+  "background": {
+    "provider": "canva_generated_placeholder",
+    "note": "Magnificアカウント未共有のため仮画像。本番はMagnific生成に差し替える",
+    "design_id": "DAHSp6WVRfw",
+    "text_removed_via": "Canva edit-design（生成時に混入した文字と装飾を削除）"
+  },
+  "logo": {
+    "source": "テンプレートpptx ppt/media/image6.jpg から抽出した実ロゴ",
+    "file": "assets/infobank_logo/infobank_logo_white.png",
+    "note": "ロゴは描き起こさない（設計書§18 偽ロゴ禁止）"
+  },
+  "brand_blue": "#004CA0",
+  "font": "Noto Sans CJK JP Black（和文ゴシック）",
+  "output": "thumbnail_typeC.png",
+  "sha256": "d10b43cb724dfdc9e8f5b2db3d14b39e68c9f096176a6d6613301ef8a885d5ef"
 }

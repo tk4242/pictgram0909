@@ -14,7 +14,13 @@ from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 
 C = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+A = "http://schemas.openxmlformats.org/drawingml/2006/main"
 R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
+
+# テンプレートのHard Rule（原本 slide31「基本的な図表の構成」に明記）
+#   フォント：Meiryo UI ／ 文字サイズ（タイトル以外）：14pt
+FONT = "Meiryo UI"
+AXIS_PT = 14
 
 # 流用するテンプレートのスライド（0始まり）
 SRC_BAR = 120     # 横棒グラフ（BAR_CLUSTERED）
@@ -74,17 +80,98 @@ def set_text(shape, value):
         extra._p.getparent().remove(extra._p)
 
 
-def force_data_labels(chart):
+def force_all_category_labels(chart):
+    """項目軸のラベルを間引かせない（c:tickLblSkip = 1）。
+
+    既定の auto では、フォント幅が変わった際にレンダラーがラベルを1つおきに
+    落とすことがある（実際に「米国」「台湾」が消える事故が起きた）。
+    スキーマ上 c:tickLblSkip は c:lblOffset の後、c:noMultiLvlLbl の前に置く。
+    """
+    for cat_ax in chart._chartSpace.iter(f"{{{C}}}catAx"):
+        for old in cat_ax.findall(f"{{{C}}}tickLblSkip"):
+            cat_ax.remove(old)
+        skip = etree.Element(f"{{{C}}}tickLblSkip")
+        skip.set("val", "1")
+        anchor = cat_ax.find(f"{{{C}}}noMultiLvlLbl")
+        if anchor is None:
+            anchor = cat_ax.find(f"{{{C}}}tickMarkSkip")
+        if anchor is None:
+            cat_ax.append(skip)
+        else:
+            anchor.addprevious(skip)
+
+
+def enforce_font(root, font=FONT):
+    """スライド／グラフ内の全テキストへ Meiryo UI を明示指定する。
+
+    流用元にした過去事例スライドは typeface を持たずテーマ（Calibri/游ゴシック）へ
+    フォールバックする作りのため、そのままではテンプレートのHard Ruleを満たさない。
+    latin / ea / cs の3系統すべてを指定しないと、和文だけ別フォントに落ちる。
+    """
+    count = 0
+    for rpr in root.iter():
+        # a:rPr / a:defRPr / a:endParaRPr すべてが typeface の親になり得る
+        if etree.QName(rpr).localname not in ("rPr", "defRPr", "endParaRPr"):
+            continue
+        for kind in ("latin", "ea", "cs"):
+            tag = f"{{{A}}}{kind}"
+            el = rpr.find(tag)
+            if el is None:
+                el = etree.SubElement(rpr, tag)
+                # a:latin/ea/cs は fill 系の後ろに来る必要があるため末尾追加で問題ない
+            el.set("typeface", font)
+        count += 1
+    return count
+
+
+def _txpr(size_pt):
+    """c:txPr（a:bodyPr / a:lstStyle / a:p>a:pPr>a:defRPr）を組み立てて返す。"""
+    txpr = etree.Element(f"{{{C}}}txPr")
+    etree.SubElement(txpr, f"{{{A}}}bodyPr")
+    etree.SubElement(txpr, f"{{{A}}}lstStyle")
+    p = etree.SubElement(txpr, f"{{{A}}}p")
+    ppr = etree.SubElement(p, f"{{{A}}}pPr")
+    defrpr = etree.SubElement(ppr, f"{{{A}}}defRPr")
+    defrpr.set("sz", str(int(size_pt * 100)))
+    for kind in ("latin", "ea", "cs"):
+        etree.SubElement(defrpr, f"{{{A}}}{kind}").set("typeface", FONT)
+    etree.SubElement(p, f"{{{A}}}endParaRPr").set("lang", "ja-JP")
+    return txpr
+
+
+def set_axis_text_size(chart, size_pt=AXIS_PT):
+    """軸ラベルを規定サイズへ揃える。
+
+    テンプレートのHard Ruleは「文字サイズ（タイトル以外）：14pt」。
+    流用元は24ptで、ルール違反な上に幅が広くレンダラーが項目ラベルを間引く
+    （「米国」「台湾」が消える事故が実際に起きた）。
+    c:txPr は c:crossAx より前に置く必要がある（スキーマ順序）。
+    """
+    for ax_name in ("catAx", "valAx"):
+        for ax in chart._chartSpace.iter(f"{{{C}}}{ax_name}"):
+            for old in ax.findall(f"{{{C}}}txPr"):
+                ax.remove(old)
+            cross_ax = ax.find(f"{{{C}}}crossAx")
+            txpr = _txpr(size_pt)
+            if cross_ax is None:
+                ax.append(txpr)
+            else:
+                cross_ax.addprevious(txpr)
+
+
+def force_data_labels(chart, size_pt=AXIS_PT):
     """系列ごとに c:dLbls を差し込み、値ラベルを必ず表示させる。
 
     python-pptx の data_labels API はテンプレート側の設定に負けることがあるため、
     XML を直接組み立てる。c:dLbls は c:cat より前に置く必要がある（スキーマ順序）。
+    c:dLbls の中では c:txPr が show* 系より前。
     """
     plot_area = chart._chartSpace.find(f".//{{{C}}}plotArea")
     for ser in plot_area.iter(f"{{{C}}}ser"):
         for old in ser.findall(f"{{{C}}}dLbls"):
             ser.remove(old)
         dlbls = etree.SubElement(ser, f"{{{C}}}dLbls")
+        dlbls.append(_txpr(size_pt))
         for tag, val in [("showLegendKey", "0"), ("showVal", "1"), ("showCatName", "0"),
                          ("showSerName", "0"), ("showPercent", "0"), ("showBubbleSize", "0")]:
             etree.SubElement(dlbls, f"{{{C}}}{tag}").set("val", val)
@@ -122,6 +209,13 @@ def build(template_path, out_path):
         data.add_series(label, values, spec["number_format"])
         chart_shape.chart.replace_data(data)
         force_data_labels(chart_shape.chart)
+        force_all_category_labels(chart_shape.chart)
+        set_axis_text_size(chart_shape.chart)
+
+        # 文字を差し替えた後にフォントを固定する（順序が逆だと新しいランが素通りする）
+        n = enforce_font(slide.shapes._spTree)
+        n += enforce_font(chart_shape.chart._chartSpace)
+        print(f"  slide {spec['slide']}: {FONT} を {n} 箇所へ適用")
 
     # 使わないスライドを削除し、参照が切れたメディアも一緒に落とす（ファイルサイズ対策）。
     # drop_rel を伴わない削除だと画像が残り、ファイルが十数MBに膨らむ。
