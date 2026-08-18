@@ -13,6 +13,8 @@
 関連資料：`docs/infobank-article-automation.md`（v1検討レポート）、`docs/pipeline-design.md`（v1技術設計）
 根拠資料：会員限定記事の設定方法.pdf ／ グラフ・図表作成のテンプレート_0602 (1).pptx（133スライド）／ InfoBankサムネイル参考画像3点
 
+**注記（参照切れ）**：`docs/infobank-article-automation.md` と `docs/pipeline-design.md` はこのブランチには存在せず、`origin/claude/article-automation-info-site-3grv4v` にのみ存在する（本ブランチへは未マージ）。参照する場合は該当ブランチから取得すること。添付PPTX原本（14.7MB）も現時点ではセッションのscratchpadにしかなく、`templates/original_infobank.pptx` としてリポジトリへ格納する方法（Git LFS等）は未確定。
+
 ## 0. 結論
 
 本システムは以下の役割分担で構築する。
@@ -65,7 +67,7 @@ InfoBankロゴ
 
 ## 2. 画像・図表の引用ルール
 
-テンプレートpptx スライド32〜36に引用方法が定義されている。
+テンプレートpptx スライド32・34〜36に引用方法が定義されている（33は無関係のプレースホルダ）。
 
 - 画像をそのまま引用：必ずキャプションを付け、引用元を記載し、リンクを埋め込む（パターン①）
 - グラフやデータを引用した場合も同様（パターン②）
@@ -186,6 +188,11 @@ Writerが使用できる事実は `status = VERIFIED` のEvidenceのみ。
 - **Independent Researcher**：主要通信社／主要新聞／業界専門媒体／調査会社／現地報道
 - **Source Analyst**：NNA等、依頼元の記事を解析し、人物・企業・数字・日付・政策・投資・市場・予測・主張をclaim単位に分解する。
 
+**原則（v1より復活）**：NNAは有料購読サービスであり、二次利用が契約上どこまで許されるかは
+着手前にクライアント確認が必要な論点（Phase 0の必須確認事項）。したがって
+`source_loader.py` は **NNAへの自動ログイン・自動取得のコードを書かない**。入力は
+人が本文を貼り付けたテキストファイル（`queue/<job_id>.txt`）として受け取る。
+
 ## 10. Evidence Ledger
 
 調査結果を文章で保存しない。必ず構造化する。
@@ -197,12 +204,17 @@ Writerが使用できる事実は `status = VERIFIED` のEvidenceのみ。
   "claim_type": "number",
   "source_type": "primary",
   "source_url": "...",
+  "quote": "原文からの該当箇所の直接引用",
+  "lang": "vi",
   "published_at": "...",
   "retrieved_at": "...",
   "status": "VERIFIED",
   "confidence": 0.98
 }
 ```
+
+`quote` と `lang` は人間の最終ファクトチェック（7〜10分／記事）の原資になる。
+これが無いと「AIが要約した文」しか残らず、原文と照合できない。
 
 Writerは `evidence.json` しか読めない。
 
@@ -220,22 +232,50 @@ Writerは `evidence.json` しか読めない。
 
 ## 13. 記事タイトルvalidator
 
-LLM任せにせずPythonで検証する。NFC正規化後に文字数判定。
+LLM任せにせずPythonで検証する。NFC正規化後に文字数判定。v1のNotion転記にあった定量要件
+（`samples/2026-08-18_abcmart/validate.py` で実装・PASS実績あり）をrule_id体系として統合する。
+
+| rule_id | 検証内容 | 期待値 |
+|---|---|---|
+| T01 | タイトル文字数（NFC正規化後） | 26〜28字 |
+| T02 | 「ベトナム」含有 | タイトル全案で必須 |
+| T03 | タイトル案の数 | 3案以上（1案だと文字数リトライで詰まる） |
+| M01 | メタディスクリプション文字数 | 80〜90字 |
+| B01 | 本文文字数（公開+会員の合計） | 1,275〜1,725字（1,500字±15%） |
+| B02 | H2見出しの数 | 2本以上 |
+| B03 | 各H2のSEOキーワード含有 | 全H2で必須 |
 
 ```python
 assert 26 <= article_title_length <= 28
+assert "ベトナム" in article_title
 ```
 
-不合格なら `TITLE_LENGTH_FAIL` としてタイトルのみ再生成。本文は再生成しない。
+`T01`/`T02`が不合格なら `TITLE_LENGTH_FAIL` としてタイトルのみ再生成。本文は再生成しない。
+`B01`〜`B03`が不合格なら `BODY_LENGTH_FAIL` / `H2_FAIL` として該当部分のみ再生成する。
 
 ## 14. 図表validator
 
 記事タイトルとは別に検証する（テンプレートのHard Rule）。
 
+| rule_id | 検証内容 | 期待値 |
+|---|---|---|
+| F01 | 図表の枚数 | 2枚程度/記事 |
+| F02 | キーメッセージ文字数 | 28字以内 |
+| F03 | 図表タイトルの行数 | 1行以内（2段階検証・下記） |
+
 ```
 figure_key_message_length <= 28
-figure_title_lines == 1
 ```
+
+`figure_title_lines == 1` は静的検証だけでは判定できない（python-pptxはレンダリング後の
+折返し行数を測れない）。したがって2段階で判定する。
+
+1. **一次判定**（生成直後・機械的）：改行文字（`\n`）を含まない、かつテンプレート実測で
+   較正した `max_chars`（フォント・枠幅から逆算した上限文字数）以内であること
+2. **最終判定**（§33 Visual QA）：LibreOffice renderのPNGを見て、実際に1行で収まっているか
+   Visual QA Agentが確認する
+
+一次判定だけでPASS扱いにしない。折返し事故は最終判定でのみ確実に検出できる。
 
 ## 15. 会員限定比率
 
@@ -250,7 +290,20 @@ validator：NFC正規化後の文字数で `0.60 <= free/total <= 0.70`（前回
 
 ## 16. Magnificを画像生成の唯一のAI画像系統にする
 
-ChatGPT Image / DALL-E / Canva AI Image等を本番生成経路から外す。**GENERATED VISUAL = MAGNIFIC** とする。
+ChatGPT Image / DALL-E / Canva AI Image等を本番生成経路から外す。**AI画像を生成するなら
+provider は必ずMagnific** とする（`IMAGE_PROVIDER_VALID`）。
+
+ただしこれは「AI生成画像を必ず使う」という意味ではない。v1の転記では、Magnificの主用途は
+**現地メディア画像の高解像度化**であり、Notionルールは現地メディア画像の転載自体を出所・
+リンク明記のもとで許可している（§2 DIRECT_IMAGE/DIRECT_CHART）。報道記事でAI生成画像を
+常用する方針は編集判断であり、システムが勝手に決めない。したがって：
+
+- 現地メディア画像を引用する記事 → Magnificでアップスケールするだけでよい。AI生成は不要
+- 独自ビジュアルが必要な記事 → AI画像生成を使う場合はproviderをMagnificに限定する
+- `IMAGE_PROVIDER_VALID` は「生成画像が存在する場合にのみ provider==magnific を強制する」
+  条件付きゲートとする。無条件の `MAGNIFIC_USED` にはしない
+
+AI生成画像を使うかどうか自体の編集方針はPhase 0の確認事項。
 
 Magnificは画像生成・編集・アップスケール・拡張・リライティング・MCP・APIを提供。Magnific MCPはClaude Codeをサポートし、エンドポイントは `https://mcp.magnific.com`。
 
@@ -381,7 +434,7 @@ Original PPTX → Template Index → slide archetype選択 → 複製 → 文字
   "member_sections": [],
   "claims": [],
   "figures": [],
-  "thumbnail": {"a": "", "b": "", "c": ""},
+  "thumbnail": {"pattern": "A|B|C", "image_path": "", "background_provider": ""},
   "sources": []
 }
 ```
@@ -395,7 +448,7 @@ Original PPTX → Template Index → slide archetype選択 → 複製 → 文字
   "title": "",
   "type": "bar",
   "data": {},
-  "source_type": "INFOBANK_DERIVED",
+  "citation_type": "INFOBANK_DERIVED",
   "source_name": "",
   "source_url": "",
   "logo_required": true
@@ -404,14 +457,17 @@ Original PPTX → Template Index → slide archetype選択 → 複製 → 文字
 
 ## 31. Hooks
 
-Claude Code HooksをHard Gateに使用する（ライフサイクル上で決定論的にコードを実行）。
+LLMの自主判断ではなくライフサイクル上で決定論的にコードを実行する。本番の実行主体は
+Python worker（§6・§36）なので、これは**Agent SDKのhooks**（`ClaudeAgentOptions(hooks=...)`
+に登録するPythonコールバック）で実装する。開発中はClaude Code Hooks（`settings.json`）で
+同じvalidatorを流用して動作確認する。
 
 ```
-Writer終了       → article_validator.py
-Fact Check終了   → claim_validator.py
-Visual生成後     → visual_validator.py
-PPTX生成後       → pptx_validator.py
-Stop前           → final_gate.py
+Writer終了（SubagentStop）     → article_validator.py
+Fact Check終了（SubagentStop） → claim_validator.py
+Visual生成後（PostToolUse）    → visual_validator.py
+PPTX生成後（PostToolUse）      → pptx_validator.py
+Stop前（Stop）                 → final_gate.py
 ```
 
 ## 32. Final Hard Gates
@@ -431,9 +487,18 @@ THUMBNAIL_VALID（1枚・パターンローテーション） / LOGO_VALID
 PPTX_VALID / VISUAL_QA_VALID
 ```
 
-テストモード規定：外部接続に依存するゲート（RULE_HASH_VALID / IMAGE_PROVIDER_VALID）は
-テストモードでスタブ可。事実系ゲート（ZERO_UNSUPPORTED_CLAIMS / CITATION_VALID /
-BRAND_VALID）と定量系ゲートは免除不可。
+**テストモード規定**：Notion/Magnific/VPS等の外部接続が無い環境（本設計書のE2E試作環境を含む）
+でも検証を止めないため、ゲートを2種に分ける。免除は「スタブで代替してPASSと記録する」ことで、
+「検証しない」ことではない。スタブを使った旨は必ず成果物に記録する（§17の記録形式に準じる）。
+
+| 分類 | ゲート | テストモードでの扱い |
+|---|---|---|
+| 免除可（外部接続依存） | RULE_HASH_VALID | Notion未接続時はv1転記＋確定事項からスナップショットを手作りしてhash化 |
+| 免除可（外部接続依存） | IMAGE_PROVIDER_VALID | Magnific未接続時はプレースホルダ画像＋`provider: stub`で代替 |
+| 免除可（外部接続依存） | SOURCE_AVAILABLE | NNA本文が既存の場合はそれを使う |
+| **免除不可**（事実系） | ZERO_UNSUPPORTED_CLAIMS / ZERO_SOURCE_CONFLICT / CITATION_VALID / BRAND_VALID | 外部接続の有無に関わらず必ず検証する |
+| **免除不可**（定量系） | ARTICLE_TITLE_VALID / META_DESCRIPTION_VALID / BODY_LENGTH_VALID / H2_VALID / FIGURE_COUNT_VALID / FIGURE_KEY_MESSAGE_VALID / FIGURE_TITLE_ONE_LINE / FONT_VALID / FREE_RATIO_VALID | 機械検証できるものを「未接続だから」で免除しない |
+| **免除不可**（構造系） | THUMBNAIL_VALID / LOGO_VALID / PPTX_VALID / VISUAL_QA_VALID | 生成物そのものの検査であり外部接続に依存しない |
 
 ## 33. Visual QA
 
@@ -448,11 +513,34 @@ PPTX → LibreOffice headless → PDF → PNG → Visual QA Agent
 ```
 NEW → RULES_LOADED → SOURCE_LOADED → RESEARCHING → EVIDENCE_READY
 → DRAFT_READY → FACTCHECK_PASSED → MEMBERSHIP_BUILT → VISUAL_BRIEF_READY
-→ MAGNIFIC_READY → CANVA_3_READY → PPTX_READY → QA_PASSED
+→ IMAGE_READY → THUMBNAIL_READY → PPTX_READY → QA_PASSED
 → READY_FOR_HUMAN_REVIEW → APPROVED
 ```
 
-失敗状態：`RULE_CHANGE_DETECTED / SOURCE_CONFLICT / UNSUPPORTED_CLAIM / TITLE_FAIL / MEMBER_FAIL / MAGNIFIC_FAIL / CANVA_FAIL / PPTX_FAIL / QA_FAIL / BRAND_NAME_CONFLICT`
+失敗状態と復帰先・リトライ上限（v1の「最大3回→人間エスカレーション」を踏襲）：
+
+| 失敗状態 | 発生する状態 | 復帰先 | リトライ上限 |
+|---|---|---|---|
+| `RULE_CHANGE_DETECTED` | RULES_LOADED | （人間が確認するまで停止。自動復帰しない） | 0 |
+| `SOURCE_CONFLICT` | RESEARCHING | RESEARCHING（別の一次資料を探す） | 3回→人間エスカレーション |
+| `UNSUPPORTED_CLAIM` | FACTCHECK_PASSED判定時 | DRAFT_READY（Writerへ戻す） | 3回→人間エスカレーション |
+| `TITLE_LENGTH_FAIL` | DRAFT_READY判定時 | DRAFT_READY（タイトルのみ再生成、本文は再生成しない） | 3回→人間エスカレーション |
+| `BODY_LENGTH_FAIL` / `H2_FAIL` | DRAFT_READY判定時 | DRAFT_READY（該当部分のみ再生成） | 3回→人間エスカレーション |
+| `MEMBER_FAIL` | MEMBERSHIP_BUILT判定時 | FACTCHECK_PASSED（切り分けをやり直す） | 3回→人間エスカレーション |
+| `FIGURE_FAIL` | PPTX_READY判定時 | VISUAL_BRIEF_READY（図表を作り直す） | 3回→人間エスカレーション |
+| `MAGNIFIC_FAIL` | IMAGE_READY判定時 | VISUAL_BRIEF_READY | 3回→人間エスカレーション |
+| `CANVA_FAIL` | THUMBNAIL_READY判定時 | VISUAL_BRIEF_READY | 3回→人間エスカレーション |
+| `PPTX_FAIL` | PPTX_READY判定時 | VISUAL_BRIEF_READY | 3回→人間エスカレーション |
+| `QA_FAIL` | QA_PASSED判定時 | 直前の生成工程（不具合の種類による） | 3回→人間エスカレーション |
+| `CITATION_FAIL` | QA_PASSED判定時 | VISUAL_BRIEF_READY（出所・引用を修正） | 3回→人間エスカレーション |
+| `BRAND_NAME_CONFLICT` | いずれの状態でも | （人間が正式表記を確認するまで停止） | 0 |
+| `UNKNOWN_REQUIREMENT` | いずれの状態でも | （推測せず停止。人間の回答を待つ） | 0 |
+
+リトライ上限に達したジョブは `READY_FOR_HUMAN_REVIEW` へは進めず、`failure` 列を保持したまま
+停止する。**注意**：`worker/state.py` の `attempts` は現在すべての遷移で加算される総カウンタ
+であり、失敗種別ごとのリトライ回数を数えているわけではない。上記の「3回→人間エスカレーション」を
+実際に強制するロジック（失敗状態が同一のまま3回続いたら停止する）は**未実装**。Phase 3で
+`worker/__main__.py` の `step()` に実装する。
 
 ## 35. プロジェクト構成
 
@@ -469,6 +557,10 @@ infobank-article-factory/
 │   ├── orchestrator.py / notion_loader.py / source_loader.py
 │   ├── researcher.py / evidence.py / article_builder.py / member_builder.py
 │   ├── magnific.py / canva.py / pptx_builder.py / citation_builder.py
+│   ├── delivery/
+│   │   ├── notion.py       # テスト段階の納品先
+│   │   ├── wordpress.py    # 本番の納品先。会員限定ショートコード込みで投稿
+│   │   └── factsheet.py    # 人間の最終ファクトチェック用シート生成（v1 §7.11相当）
 │   └── validators/
 ├── templates/
 │   ├── original_infobank.pptx
@@ -521,7 +613,7 @@ ANTHROPIC_API_KEY / NOTION_TOKEN / CANVA TOKEN / MAGNIFIC_API_KEY / OAuth Token 
 
 ## 41. 実装フェーズ
 
-- **Phase 0 — Rule Freeze**：Notion API接続、正式ルール取得、ブランド名確定
+- **Phase 0 — Rule Freeze**：Notion API接続、正式ルール取得、ブランド名確定、**NNA二次利用の契約上の可否をクライアントへ確認**（v1 §6①の最大論点。技術で解決できない）、AI生成画像を使う編集方針の確認、Canvaプラン（Pro/Enterprise）の確認
 - **Phase 1 — 既存PPTX解析**：template registry化
 - **Phase 2 — Research Factory**：Subagents構築、Evidence Ledger完成
 - **Phase 3 — Article Factory**：Writer / Critic / validator、会員限定ショートコード
@@ -628,3 +720,6 @@ LLMが得意なもの → LLM
 ```
 
 これを崩さない。
+
+
+> 状態名は `ai/claude/infobank-factory/worker/state.py` の `STATES` と一致させている。どちらかを変更したら両方を直すこと（ドリフト防止）。
