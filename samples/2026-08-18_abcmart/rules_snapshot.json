@@ -1,0 +1,32 @@
+{
+  "rule_version": "2026-08-18",
+  "source": "v1転記+ユーザー確定事項（テストモード: Notion API未接続）",
+  "article_title_min": 26,
+  "article_title_max": 28,
+  "title_must_include": "ベトナム",
+  "title_candidates_min": 3,
+  "meta_description_range": [
+    80,
+    90
+  ],
+  "body_length_range": [
+    1275,
+    1725
+  ],
+  "figure_key_message_max": 28,
+  "figures_per_article": 2,
+  "free_ratio_tolerance": [
+    0.6,
+    0.7
+  ],
+  "thumbnails_per_article": 1,
+  "thumbnail_patterns": [
+    "A",
+    "B",
+    "C"
+  ],
+  "brand_display_name": "InfoBank",
+  "image_generator": "magnific",
+  "human_review_required": true,
+  "sha256": "f5502a4fb50e3591ee5ccb49dc4a612e724a59673c88935fab7c02c4cd9bb1b6"
+}
