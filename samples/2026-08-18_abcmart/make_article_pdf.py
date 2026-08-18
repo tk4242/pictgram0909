@@ -69,8 +69,8 @@ def gate_rows():
         line = line.strip()
         if not line.startswith("["):
             continue
-        mark = line[1:6].strip()
-        rest = line[7:]
+        mark = line[1:line.index("]")].strip()
+        rest = line[line.index("]") + 1:]
         parts = rest.split("実測=")
         left = parts[0].split(None, 1)
         rid = left[0]
@@ -105,15 +105,31 @@ def main():
         ev = json.loads(ev_path.read_text(encoding="utf-8"))
         claims = json.loads((HERE / "claims.json").read_text(encoding="utf-8"))
         by_id = {e["claim_id"]: e for e in ev}
-        fc_rows = "".join(
-            f'<tr><td>{c["claim_id"]}</td><td>{esc(c["claim"][:58])}</td>'
-            f'<td class="s-{by_id.get(c["claim_id"], {}).get("status", "MISSING")}">'
-            f'{by_id.get(c["claim_id"], {}).get("status", "MISSING")}</td>'
-            f'<td>{esc(str(by_id.get(c["claim_id"], {}).get("source_name", "—"))[:34])}</td></tr>'
-            for c in claims)
-        fc_section = f"""<h2 class="sec">ファクトチェック結果（Evidence Ledger照合）</h2>
-        <table class="fc"><thead><tr><th>claim</th><th>内容</th><th>判定</th><th>出典</th></tr></thead>
-        <tbody>{fc_rows}</tbody></table>"""
+        def row(c):
+            e = by_id.get(c["claim_id"], {})
+            st = e.get("status", "MISSING")
+            return (f'<tr><td>{c["claim_id"]}</td><td>{esc(c["claim"][:52])}</td>'
+                    f'<td class="s-{st}">{st}</td>'
+                    f'<td>{esc(str(e.get("source_name", "—"))[:30])}</td>'
+                    f'<td class="u">{esc(str(e.get("source_url", "—"))[:52])}</td></tr>')
+        fc_rows = "".join(row(c) for c in claims)
+        weak = [e for e in ev if e["status"] == "PARTIAL"
+                and next((c["claim_type"] for c in claims if c["claim_id"] == e["claim_id"]), "")
+                in ("number", "date", "forecast")]
+        weak_rows = "".join(
+            f'<tr><td>{e["claim_id"]}</td><td>{esc(e["note"][:150])}</td></tr>' for e in weak)
+        removed = [e for e in ev if e["status"] == "RESOLVED_REMOVED"]
+        rm_rows = "".join(
+            f'<tr><td>{e["claim_id"]}</td><td>{esc(e["note"][:180])}</td></tr>' for e in removed)
+        fc_section = f"""<h2 class="sec">ファクトチェック結果（Evidence Ledger照合・全{len(claims)}件）</h2>
+        <table class="fc"><thead><tr><th>claim</th><th>内容</th><th>判定</th><th>出典</th><th>URL</th></tr></thead>
+        <tbody>{fc_rows}</tbody></table>
+        <h2 class="sec">人間レビュー必須：Double Check未充足（{len(weak)}件）</h2>
+        <p style="font-size:8.5pt;color:#555">数値・日付・予測のclaimのうち、裏付けが単一の二次情報のみ、
+        または基準日・定義に差異があるもの。設計書§11は一次1件＋独立1件、または権威ある一次資料1件を求める。
+        工程は止めないが、承認前に必ず内容を確認すること。</p>
+        <table><thead><tr><th>claim</th><th>内容と注意点</th></tr></thead><tbody>{weak_rows}</tbody></table>
+        {'<h2 class="sec">調査で検出し記事を修正した矛盾</h2><table><thead><tr><th>claim</th><th>経緯</th></tr></thead><tbody>' + rm_rows + '</tbody></table>' if rm_rows else ''}"""
     else:
         fc_section = ('<h2 class="sec">ファクトチェック結果</h2>'
                       '<p class="warn">evidence.json が未生成のため未実施。'
@@ -159,15 +175,21 @@ def main():
   .member {{ background: #fcfcfd; border-left: 3px solid #cfd8e3; padding: 2px 12px; }}
   table {{ width: 100%; border-collapse: collapse; font-size: 8pt; margin-top: 8px; }}
   th, td {{ border: 1px solid #dcdcdc; padding: 4px 6px; text-align: left;
-            vertical-align: top; word-break: break-all; }}
+            vertical-align: top; }}
+  td:first-child {{ white-space: nowrap; }}
+  table.fc td:nth-child(2) {{ word-break: break-word; }}
   th {{ background: #eef1f5; font-weight: 700; }}
   .g-PASS td:first-child {{ background: #e8f5e9; color: #1b5e20; font-weight: 700; }}
   .g-STUB td:first-child {{ background: #fff8e1; color: #8d6e00; font-weight: 700; }}
   .g-BLOCK td:first-child {{ background: #ffebee; color: #b71c1c; font-weight: 700; }}
+  .g-REVIEW td:first-child {{ background: #e3f2fd; color: #0d47a1; font-weight: 700; }}
+  .s-PARTIAL {{ background: #fff8e1; color: #8d6e00; font-weight: 700; }}
+  .s-RESOLVED_REMOVED {{ background: #eceff1; color: #455a64; font-weight: 700; }}
   .s-VERIFIED {{ background: #e8f5e9; color: #1b5e20; font-weight: 700; }}
   .s-UNVERIFIED, .s-MISSING, .s-NOT_FOUND {{ background: #ffebee; color: #b71c1c; font-weight: 700; }}
   .s-PARTIAL {{ background: #fff8e1; color: #8d6e00; font-weight: 700; }}
   .s-CONFLICT {{ background: #ffebee; color: #b71c1c; font-weight: 700; }}
+  td.u {{ font-size: 6.5pt; color: #666; }}
   ul.titles {{ font-size: 9pt; padding-left: 18px; }}
   ul.titles li {{ margin-bottom: 3px; }}
   .cnt {{ display: inline-block; width: 44px; color: {BRAND}; font-weight: 700; }}

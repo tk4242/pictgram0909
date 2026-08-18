@@ -18,8 +18,13 @@ n = lambda s: len(unicodedata.normalize("NFC", s.strip()))
 results = []
 
 
-def gate(rid, label, ok, actual, expect, *, stub=False):
-    results.append((rid, label, ok, actual, expect, stub))
+def gate(rid, label, ok, actual, expect, *, stub=False, review=False):
+    """review=True の項目は工程を止めない代わりに、人間レビューで必ず提示する。
+
+    設計書§32のHard Gate一覧に無い項目を勝手にBLOCK扱いにすると、
+    ゲートの意味（止めるべきものを止める）が曖昧になるため重大度を分ける。
+    """
+    results.append((rid, label, ok, actual, expect, stub, review))
 
 
 # ── 記事本文（T/M/B/F/G体系。設計書§13-14）──
@@ -107,11 +112,23 @@ claims = json.loads((HERE / "claims.json").read_text(encoding="utf-8"))
 ev_path = HERE / "evidence.json"
 if ev_path.exists():
     ev = {e["claim_id"]: e for e in json.loads(ev_path.read_text(encoding="utf-8"))}
-    unsupported = [c["claim_id"] for c in claims if ev.get(c["claim_id"], {}).get("status") != "VERIFIED"]
-    conflicts = [cid for cid, e in ev.items() if e.get("status") == "CONFLICT"]
+    # 設計書§12 Claim Audit: Evidenceが存在しない事実が1つでもあれば UNSUPPORTED_CLAIM
+    unsupported = [c["claim_id"] for c in claims
+                   if ev.get(c["claim_id"], {}).get("status") not in ("VERIFIED", "PARTIAL")]
+    conflicts = [c["claim_id"] for c in claims if ev.get(c["claim_id"], {}).get("status") == "CONFLICT"]
+    # 設計書§11 Double Fact Check: 数字・日付・予測は一次1件 or 一次1+独立1 が必要。
+    # 単一の二次情報のみ（PARTIAL）のものは人間レビュー必須項目として明示する。
+    HARD = {"number", "date", "forecast"}
+    weak = [c["claim_id"] for c in claims
+            if c["claim_type"] in HARD and ev.get(c["claim_id"], {}).get("status") == "PARTIAL"]
+    verified = sum(1 for c in claims if ev.get(c["claim_id"], {}).get("status") == "VERIFIED")
     gate("FC01", "全claimにEvidence", not unsupported,
-         f"未裏付け{len(unsupported)}件 {unsupported[:6]}" if unsupported else f"{len(claims)}件すべてVERIFIED", "0件")
+         f"未裏付け{len(unsupported)}件 {unsupported[:6]}" if unsupported
+         else f"{len(claims)}件（VERIFIED {verified} / PARTIAL {len(claims)-verified}）", "未裏付け0件")
     gate("FC02", "ソース矛盾なし", not conflicts, f"{len(conflicts)}件", "0件")
+    gate("FC03", "Double Check充足", not weak,
+         f"要確認{len(weak)}件 {weak}" if weak else "全件充足",
+         "数値・日付は複数ソース", review=True)
 else:
     gate("FC01", "全claimにEvidence", False, "evidence.json 未生成", "0件")
     gate("FC02", "ソース矛盾なし", False, "evidence.json 未生成", "0件")
@@ -120,20 +137,26 @@ else:
 print("=" * 92)
 print(f"  Final Hard Gates — {len(results)}項目")
 print("=" * 92)
-blocked = []
-for rid, label, ok, actual, expect, stub in results:
-    if stub and ok:
+blocked, reviews = [], []
+for rid, label, ok, actual, expect, stub, review in results:
+    if ok and stub:
         mark = "STUB "
     elif ok:
         mark = "PASS "
+    elif review:
+        mark = "REVIEW"
+        reviews.append(rid)
     else:
         mark = "BLOCK"
         blocked.append(rid)
-    print(f"  [{mark}] {rid:<8} {label:<22} 実測={actual:<44} 期待={expect}")
+    print(f"  [{mark:<5}] {rid:<8} {label:<22} 実測={actual:<44} 期待={expect}")
 print("=" * 92)
 if blocked:
     print(f"  結果: BLOCKED — {len(blocked)}項目が不合格 {blocked}")
     print("  → READY_FOR_HUMAN_REVIEW へ進めない（設計書§32）")
 else:
-    print("  結果: 全項目クリア → READY_FOR_HUMAN_REVIEW へ進める")
+    print("  結果: Hard Gates 全項目クリア → READY_FOR_HUMAN_REVIEW へ進める")
+    if reviews:
+        print(f"  ただし人間レビュー必須項目が {len(reviews)}件: {reviews}")
+        print("  → 承認前に必ず内容を確認すること（自動承認は禁止・設計書§42-24）")
 sys.exit(1 if blocked else 0)
