@@ -28,6 +28,12 @@ def esc(s):
     return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
+def body_html(s):
+    """本文用：エスケープした上で **強調** を <strong> へ変換する。"""
+    import re
+    return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc(s))
+
+
 def load():
     lines = [l for l in (HERE / "draft.txt").read_text(encoding="utf-8").splitlines() if l.strip()]
     return lines
@@ -48,7 +54,7 @@ def build_body(lines, fig_caption):
         if tag == "@H@":
             html.append(f"<h2>{esc(text)}</h2>")
         elif tag in ("@F@", "@X@"):
-            html.append(f"<p>{esc(text)}</p>")
+            html.append(f"<p>{body_html(text)}</p>")
         elif tag == "@G@":
             cap, img = fig_caption[text]
             html.append(f'<figure><img src="data:image/png;base64,{b64(HERE / img)}">'
@@ -88,15 +94,15 @@ def main():
     lines = load()
     g = lambda p: [l[len(p):] for l in lines if l.startswith(p)]
     titles, meta = g("@T@"), g("@M@")[0]
-    title = titles[4]
+    title = titles[0]
     pub = sum(map(n, g("@F@")))
     mem = sum(map(n, g("@X@")))
 
     figs = {
-        "1": ("図表1：ABCマートの海外店舗数（2026年3月末時点）　"
-              "出所：エービーシー・マート「2027年2月期第1四半期決算」をもとにInfoBank作成", "figure1.png"),
-        "2": ("図表2：日系専門店チェーンのベトナム店舗数　"
-              "出所：各社公表資料をもとにInfoBank作成", "figure2.png"),
+        "1": ("【ABCマートの海外店舗数（2026年3月末時点）】（出所）エービーシー・マート"
+              "「2027年2月期第1四半期決算」をもとにInfoBank作成。", "figure1.png"),
+        "2": ("【日系専門店チェーンのベトナム店舗数】（出所）各社公式店舗一覧・公表資料をもとに"
+              "InfoBank作成。ユニクロは2026年7月時点、無印良品は2026年8月時点、ABCマートは新店を含む。", "figure2.png"),
     }
     rows, gate_code = gate_rows()
 

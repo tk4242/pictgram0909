@@ -280,3 +280,15 @@
 independent-researcher / evidence-compiler と Evidence Ledgerの実コード）に着手する。
 6時間ごとの自動継続Routine（trig_01H3huSVgAC53nY3kWFFJXrc）がこれを進める設計だが、
 MCPコネクタ（Canva等）は引き継がれないため、Canvaが要る工程は手動セッションで行うこと。
+
+
+## 2026-08-19 Claude Code（クラウド実行）
+
+- `docs/infobank-article-factory-v3.md` … 新チャット移行用の上位実装仕様（最終ゴール=リンク投入型、
+  テスト納品=Notion）。レビューエージェントの指摘18件を反映済み
+- `config/style_guide.md` … infobank-vn.com実記事8本から抽出したハウススタイル
+- `templates/template_registry.json` … 支給PPTX解析結果を永続化（原本はリポジトリ非格納・README参照）
+- ABCマート記事をお手本仕様へ全面書き直し（太字強調・予告して切るペイウォール・展望締め）。
+  追加リサーチで無印良品19店へ更新・ユニクロ32店を公式API直接確認。Hard Gates 22項目クリア
+- **未完了**: Notion納品（コネクタ切断のため保留。再接続後に §19.1 の構成で納品）。
+  クライアントのNotionルールページ（3b9e27bf...）は接続ワークスペースから404＝未凍結のまま
