@@ -1,16 +1,16 @@
 [
   {
     "claim_id": "C001",
-    "status": "PARTIAL",
+    "status": "VERIFIED",
     "source_type": "secondary",
-    "source_name": "VIETJOベトナムニュース",
-    "source_url": "https://www.viet-jo.com/news/nikkei/260808110337.html",
-    "published_at": "2026-08-10",
-    "quote": "ABCマート・ベトナムは8月29日、ホーチミン市の「イオンモール・タンフーセラドン」にベトナム5号店をグランドオープンする。",
+    "source_name": "NNA ASIA（主情報源・記事2956658）＋VIETJOベトナムニュース",
+    "source_url": "https://www.nna.jp/news/2956658",
+    "published_at": "2026-08",
+    "quote": "NNA公開リード：靴小売りチェーン大手のエービーシー・マートのベトナム法人ＡＢＣマートベトナムは、29日に南部ホーチミン市で新店舗を開業する。ベトナム５号店となる。",
     "lang": "ja",
     "retrieved_at": "2026-08-18",
-    "confidence": 0.75,
-    "note": "独立ソースがVIETJO 1本のみ。企業公式リリースは未確認で、記事内容は実質リリースの転載とみられる。日付claimはDouble Check未充足。"
+    "confidence": 0.9,
+    "note": "主情報源NNA（公開部分）と独立系VIETJOの2件が開業日・場所・5号店で一致。NNA全文は権利確認まで未取得（公開リードのみ使用）。"
   },
   {
     "claim_id": "C002",
@@ -79,7 +79,7 @@
   },
   {
     "claim_id": "C007",
-    "status": "PARTIAL",
+    "status": "RESOLVED_REMOVED",
     "source_type": "secondary",
     "source_name": "ジェトロ 地域・分析レポート",
     "source_url": "https://www.jetro.go.jp/biz/areareports/2024/956df6efd23a51d3.html",
@@ -88,7 +88,7 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.7,
-    "note": "一次情報（同社IR）に面積記載なし。ベトナム現地報道には「販売面積498㎡超」とする数値揺れあり。"
+    "note": "ベトナム語ソース（VnExpress／Thể thao & Văn hóa）は一貫して「販売面積498㎡超」で、ジェトロ経由の489㎡と食い違う。使い分けを裏付ける証拠もないため、数値を記事から削除し「旗艦のサイゴンセンター店に次ぐ規模」とだけ記載して解消（多数決で決めない・§11）。"
   },
   {
     "claim_id": "C008",
@@ -211,27 +211,27 @@
     "claim_id": "C017",
     "status": "VERIFIED",
     "source_type": "secondary",
-    "source_name": "Thanh Niên（＋VietnamNetで補強）",
-    "source_url": "https://thanhnien.vn/uniqlo-dau-tien-o-da-nang-chua-khai-truong-da-hut-khach-den-cho-san-sale-185260701210324165.htm",
-    "published_at": "2026-07-01",
-    "quote": "ダナン店はUNIQLOにとって全国32店目（cửa hàng thứ 32 trên toàn quốc）",
+    "source_name": "ユニクロ公式ストアロケーターAPI（＋Thanh Niên／Báo Thanh Hóa報道）",
+    "source_url": "https://map.uniqlo.com/vn/api/storelocator/v1/en/stores?offset=0&r=storelocator",
+    "published_at": "2026-08-19",
+    "quote": "APIレスポンス pagination: {\"total\": 32}（全32店の店名列挙で直接確認）",
     "lang": "vi",
     "retrieved_at": "2026-08-18",
-    "confidence": 0.9,
-    "note": "独立2件が一致。基準日は2026年7月3日。記事の「2026年7月時点」と整合。"
+    "confidence": 0.97,
+    "note": "公式店舗一覧の直接カウントで32店を確認（2026-08-19取得）。秋冬の2新店開業後は34店予定という報道とも整合。"
   },
   {
     "claim_id": "C018",
-    "status": "PARTIAL",
+    "status": "VERIFIED",
     "source_type": "secondary",
-    "source_name": "Báo Công Thương",
-    "source_url": "https://congthuong.vn/khai-truong-cua-hang-muji-lon-nhat-tai-viet-nam-lon-thu-3-dong-nam-a-432655.html",
-    "published_at": "2025-11-29",
-    "quote": "MUJI Việt Nam đã mở rộng sự hiện diện với 17 cửa hàng（訳：無印良品ベトナムは17店舗まで拡大）",
+    "source_name": "MUJI Vietnam公式サイト 店舗一覧（直接カウント）",
+    "source_url": "https://www.muji.com.vn/vn/page/store-location",
+    "published_at": "2026-08-19",
+    "quote": "公式一覧の実カウント：TP.HCM 9店＋フエ1店＋ダナン1店＋ハノイ8店＝合計19店",
     "lang": "vi",
     "retrieved_at": "2026-08-18",
-    "confidence": 0.8,
-    "note": "単一二次情報。同社は2026年に20店目標を掲げており現在は17を超える可能性。記事は「2025年11月時点」と限定しており表現自体は正確。"
+    "confidence": 0.95,
+    "note": "旧claim「17店（2025年11月時点）」は古かったため、記事・図表とも19店（2026年8月時点）へ更新。無印良品もABCマート新店と同じイオンモール・タンフーセラドンに出店済み。"
   },
   {
     "claim_id": "C019",
@@ -365,16 +365,16 @@
   },
   {
     "claim_id": "C029",
-    "status": "PARTIAL",
+    "status": "VERIFIED",
     "source_type": "secondary",
-    "source_name": "各社報道（ユニクロ=Thanh Niên、無印良品=Công Thương、ABCマート=VIETJO）",
-    "source_url": "https://congthuong.vn/khai-truong-cua-hang-muji-lon-nhat-tai-viet-nam-lon-thu-3-dong-nam-a-432655.html",
-    "published_at": "2025-11-29",
-    "quote": "（図表2の3系列の合成）",
+    "source_name": "ユニクロ公式ストアロケーターAPI／MUJI Vietnam公式店舗一覧／ABCマート1Q短信+NNA",
+    "source_url": "https://www.muji.com.vn/vn/page/store-location",
+    "published_at": "2026-08-19",
+    "quote": "ユニクロ32（API total=32）／無印良品19（公式一覧カウント）／ABCマート5（4店+新店）",
     "lang": "ja",
     "retrieved_at": "2026-08-18",
-    "confidence": 0.8,
-    "note": "ユニクロ32はVERIFIED、無印良品17はPARTIAL（基準日が2025年11月で古い）、ABCマート5は新店を含む。基準日が揃っていない点を図表の注記で開示済み。"
+    "confidence": 0.93,
+    "note": "図表2の3系列すべてを公式ソースの直接確認で裏付け。基準日はユニクロ2026年7月・無印2026年8月・ABCマート新店込みで、図表の注記に開示。"
   },
   {
     "claim_id": "C030",

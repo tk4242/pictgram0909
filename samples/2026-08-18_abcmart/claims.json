@@ -48,14 +48,6 @@
     "evidence": []
   },
   {
-    "claim_id": "C007",
-    "claim": "2023年開業のサイゴンセンター店の面積は489平方メートル",
-    "claim_type": "number",
-    "section": "F",
-    "status": "UNVERIFIED",
-    "evidence": []
-  },
-  {
     "claim_id": "C008",
     "claim": "イオンモール・タンフーセラドンは2014年1月に開業したイオンモールのベトナム1号店",
     "claim_type": "date",
@@ -137,7 +129,7 @@
   },
   {
     "claim_id": "C018",
-    "claim": "無印良品のベトナム店舗数は17店（2025年11月時点）",
+    "claim": "無印良品のベトナム店舗数は19店（2026年8月時点）",
     "claim_type": "number",
     "section": "F",
     "status": "UNVERIFIED",
@@ -225,7 +217,7 @@
   },
   {
     "claim_id": "C029",
-    "claim": "図表2: 日系専門店チェーンのベトナム店舗数 ユニクロ32・無印良品17・ABCマート5",
+    "claim": "図表2: 日系専門店チェーンのベトナム店舗数 ユニクロ32・無印良品19・ABCマート5",
     "claim_type": "number",
     "section": "G",
     "status": "UNVERIFIED",

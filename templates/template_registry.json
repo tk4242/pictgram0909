@@ -1,0 +1,105 @@
+{
+  "source_pptx": "グラフ・図表作成のテンプレート_0602 (1).pptx",
+  "generated_at": "2026-08-18",
+  "archetypes": {
+    "bar_chart": {
+      "slides": [
+        37,
+        38
+      ],
+      "native_chart": true
+    },
+    "line_chart": {
+      "slides": [
+        40
+      ],
+      "native_chart": true
+    },
+    "table": {
+      "slides": [
+        39
+      ],
+      "native_chart": false
+    },
+    "stacked_bar_3series": {
+      "slides": [
+        51
+      ],
+      "native_chart": true
+    },
+    "clustered_bar_3series": {
+      "slides": [
+        52
+      ],
+      "native_chart": true
+    },
+    "stacked_area_100pct": {
+      "slides": [
+        53
+      ],
+      "native_chart": true
+    },
+    "waterfall": {
+      "slides": [
+        54
+      ],
+      "native_chart": true
+    },
+    "bubble": {
+      "slides": [
+        55
+      ],
+      "native_chart": true
+    },
+    "base_figure_layout": {
+      "slides": [
+        2
+      ],
+      "note": "キーメッセージ+図表タイトル+出所+ロゴの基本構成"
+    },
+    "rule_spec": {
+      "slides": [
+        31
+      ],
+      "note": "キーメッセージ28文字以内/図表タイトル1行/Meiryo UI/14pt"
+    },
+    "citation_patterns": {
+      "slides": [
+        32,
+        34,
+        35,
+        36
+      ]
+    },
+    "vietnam_map": {
+      "slides": [
+        69,
+        70
+      ]
+    },
+    "icons": {
+      "slides": [
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113
+      ]
+    },
+    "past_examples_with_charts": {
+      "slides": [
+        115,
+        117,
+        121,
+        123,
+        124
+      ]
+    }
+  }
+}

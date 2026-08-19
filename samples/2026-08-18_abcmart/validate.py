@@ -1,6 +1,7 @@
 import unicodedata,sys
 L=[l for l in open(sys.argv[1],encoding='utf-8').read().splitlines() if l.strip()]
-n=lambda s: len(unicodedata.normalize('NFC',s.strip()))
+import re
+n=lambda s: len(unicodedata.normalize('NFC',re.sub(r'\*','',s.strip())))
 g=lambda p:[l[len(p):] for l in L if l.startswith(p)]
 T,M,H,F,X,G = g('@T@'),g('@M@')[0],g('@H@'),g('@F@'),g('@X@'),g('@G@')
 pub,mem = sum(map(n,F)), sum(map(n,X)); tot=pub+mem

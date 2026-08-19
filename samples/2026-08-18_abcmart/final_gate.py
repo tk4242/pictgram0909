@@ -14,7 +14,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 
-n = lambda s: len(unicodedata.normalize("NFC", s.strip()))
+n = lambda s: len(unicodedata.normalize("NFC", re.sub(r"\*", "", s.strip())))
 results = []
 
 
