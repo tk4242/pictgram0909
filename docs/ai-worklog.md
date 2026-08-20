@@ -392,3 +392,70 @@ MCPコネクタ（Canva等）は引き継がれないため、Canvaが要る工�
 
 - ユーザー：Notion UI上で当該ページの共有設定（外部招待 or Web公開）を行う。
 - なし（それ以外、今回依頼された4点はすべて完了）。
+
+---
+
+## 2026-08-21 Claude Code / claude/infobank-article-automation-design-9jb4hr（続き2・リポジトリ正本とライブページの乖離を修正）
+
+Codexによるレビューで、直前のセッションがライブページのみ修正しリポジトリ正本
+（`draft.txt` / `claims.json` / `evidence.json`）を放置していたことを指摘された。
+ユーザー指示に基づき是正した。
+
+**やったこと**
+
+1. `draft.txt`（12行目）のC009該当文をライブページ確定文言に合わせて修正。ただし
+   当初案「イオンモールは同国で8施設（「イオンモール」ブランド限定）を運営する」だと
+   本文が1733字となりB01（上限1,724字）をBLOCKしたため、「イオンモールは同国で
+   ブランド限定の8施設を運営する」（+7字）へ簡潔化し、1724字（上限ぴったり）でPASSに収めた。
+   ライブページのNotion側表現もこの簡潔版に合わせて修正済み。
+2. `claims.json`のC009: `status`を`"UNVERIFIED"`→`"PARTIAL_APPROVED"`へ、`claim`文言も
+   本文修正に合わせて更新。
+   （※claims.jsonの`status`フィールドは`final_gate.py`にも`make_notion_delivery.py`にも
+   一切参照されない値であることを確認済み。実際のゲート判定・出力は全て`evidence.json`側の
+   `status`を見ている。claims.json側は全30件が常に`"UNVERIFIED"`のまま更新されない設計上の
+   癖であり、C009だけ書き換えたことで他29件と体裁が揃わなくなる点は認識の上で対応した）
+3. `evidence.json`: FC03の7件（C004/C005/C009/C010/C012/C025/C027）全てに
+   `reviewed_by: "tmysk76@gmail.com"`, `reviewed_at: "2026-08-21"`, `review_decision`
+   （`APPROVED_AS_IS`または`APPROVED_WITH_EDIT`）, `review_note`を追加。
+4. **`final_gate.py`と`make_notion_delivery.py`を改修**（単発のデータ修正ではなく恒久対応）：
+   - `final_gate.py`: FC03ゲートの実測欄が、weak（単一ソース）件のうち`reviewed_by`が
+     揃っていれば「N件すべてユーザー確認済み（日付）」と表示するよう変更。一部のみ
+     レビュー済みなら未レビュー分のみ列挙。REVIEW自体は解除しない（自動承認は禁止のため）。
+   - `make_notion_delivery.py`: 「承認前の確認事項」トグルが、全件レビュー済みなら
+     見出しを「人間レビュー確認済み」に切り替え、各項目に✅と`review_note`
+     （修正済みの場合）を付与するよう変更。仮画像の注記も⚠️付きの強調版へ統一。
+   - この改修により、以後は`evidence.json`にレビュー記録さえ入れれば
+     `make_notion_delivery.py`の再実行だけでNotion側の表示と自動的に一致する
+     （手動でNotion側だけ直す運用は再発防止のため廃止）。
+5. `final_gate.py`実行に`python-pptx`が未インストールで失敗したため`pip3 install python-pptx`
+   で導入（既存スクリプトの依存関係。破壊的操作ではない）。
+6. `make_notion_delivery.py`を再実行し`notion_delivery.md`を再生成。
+
+**検証**
+
+- 実行した: `python3 final_gate.py` → 22項目中BLOCK 0件（B01=1724字でPASS、FC03は
+  「7件すべてユーザー確認済み（2026-08-21）」表示のREVIEW、IMG01のみSTUB）、
+  終了コード0（READY_FOR_HUMAN_REVIEWへ進める状態）。
+- 実行した: `python3 check_claim_sync.py` → 「28件中 要確認0件」。
+- 実行した: `python3 make_notion_delivery.py` → 464行で正常生成。C009の本文・
+  「人間レビュー確認済み」トグル・✅注記・⚠️仮画像注記が反映されていることを
+  `grep`で確認。
+- 実行できなかった: `bin/rails test` → 本変更はNotion納品パイプラインのみで
+  Railsアプリコードとは無関係。
+
+**決めたこと / 申し送り**
+
+- **ライブページとリポジトリ正本は一致した。** 今後Notion側の文言を直接編集する
+  場合は、必ず同じ変更を`draft.txt`/`claims.json`/`evidence.json`にも加え、
+  `make_notion_delivery.py`→`final_gate.py`の順で再生成・再検証してから
+  コミットすること（Notion側だけ直して終わりにしない）。
+- claims.jsonの`status`フィールドは実質デッドコードで、C009以外の29件も
+  ずっと`"UNVERIFIED"`のまま。設計として正しいのか、単に未実装なのかは
+  本セッションでは判断していない。次にこのファイルを触る側は、claims.json
+  全体のstatus運用方針を確認してから手を入れること。
+- `python-pptx`をこの開発環境にpipインストールした。requirements.txtが
+  存在しないため、他の環境で`final_gate.py`を動かす際は同様に必要になる。
+
+**次にやってほしいこと**
+
+- なし（今回指摘された5点はすべて対応完了）。
