@@ -145,8 +145,18 @@ if ev_path.exists():
          f"未裏付け{len(unsupported)}件 {unsupported[:6]}" if unsupported
          else f"{len(claims)}件（VERIFIED {verified} / PARTIAL {len(claims)-verified}）", "未裏付け0件")
     gate("FC02", "ソース矛盾なし", not conflicts, f"{len(conflicts)}件", "0件")
-    gate("FC03", "Double Check充足", not weak,
-         f"要確認{len(weak)}件 {weak}" if weak else "全件充足",
+    # weak各件の人間レビュー記録（reviewed_by/reviewed_at）が evidence.json に
+    # 揃っていれば、REVIEW自体は解除しない（設計書§42-24：自動承認は禁止）が、
+    # 実測欄に確認済みである旨を出す。記録がない・一部欠けている場合は従来どおり列挙する。
+    reviewed = [c for c in weak if ev.get(c, {}).get("reviewed_by")]
+    if weak and len(reviewed) == len(weak):
+        dates = sorted({ev[c]["reviewed_at"] for c in weak if ev[c].get("reviewed_at")})
+        fc03_actual = f"{len(weak)}件すべてユーザー確認済み（{'/'.join(dates)}）"
+    elif weak:
+        fc03_actual = f"要確認{len(weak) - len(reviewed)}件 {[c for c in weak if c not in reviewed]}"
+    else:
+        fc03_actual = "全件充足"
+    gate("FC03", "Double Check充足", not weak, fc03_actual,
          "数値・日付は複数ソース", review=True)
 else:
     gate("FC01", "全claimにEvidence", False, "evidence.json 未生成", "0件")

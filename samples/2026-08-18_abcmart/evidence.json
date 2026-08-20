@@ -49,7 +49,11 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.75,
-    "note": "数値claimだが単一二次情報。Double Check未充足。"
+    "note": "数値claimだが単一二次情報。Double Check未充足。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_AS_IS",
+    "review_note": "単一ソースだが仕様値・権威ある報道・既存の留保表現などにより採用可と判断"
   },
   {
     "claim_id": "C005",
@@ -62,7 +66,11 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.75,
-    "note": "数値claimだが単一二次情報。"
+    "note": "数値claimだが単一二次情報。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_AS_IS",
+    "review_note": "単一ソースだが仕様値・権威ある報道・既存の留保表現などにより採用可と判断"
   },
   {
     "claim_id": "C006",
@@ -114,7 +122,11 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.8,
-    "note": "「イオンモール」ブランドなら8で二次2件が一致。ただし日経は中型施設を含め9カ所とする。定義差あり。"
+    "note": "「イオンモール」ブランドなら8で二次2件が一致。ただし日経は中型施設を含め9カ所とする。定義差あり。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_WITH_EDIT",
+    "review_note": "日経は中型施設を含め9カ所とし定義が食い違うため、記事本文を「イオンモールは同国でブランド限定の8施設を運営する」へ修正のうえ承認"
   },
   {
     "claim_id": "C010",
@@ -127,7 +139,11 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.85,
-    "note": "単一の二次情報（ただし権威ある媒体）。同記事は現状を9カ所とし、C009の8とは基準が異なる。"
+    "note": "単一の二次情報（ただし権威ある媒体）。同記事は現状を9カ所とし、C009の8とは基準が異なる。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_AS_IS",
+    "review_note": "単一ソースだが仕様値・権威ある報道・既存の留保表現などにより採用可と判断"
   },
   {
     "claim_id": "C011",
@@ -153,7 +169,11 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.75,
-    "note": "「2023年に4店開いて計5店」は一致。ただし5号店の月が食い違う（ジェトロ=10月、VIETJO=9月30日開業）。記事の「9月の」は断定を避けるべき。 記事側を「秋のサイゴンセンター店」へ修正し、月の断定を回避した。"
+    "note": "「2023年に4店開いて計5店」は一致。ただし5号店の月が食い違う（ジェトロ=10月、VIETJO=9月30日開業）。記事の「9月の」は断定を避けるべき。 記事側を「秋のサイゴンセンター店」へ修正し、月の断定を回避した。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_AS_IS",
+    "review_note": "単一ソースだが仕様値・権威ある報道・既存の留保表現などにより採用可と判断"
   },
   {
     "claim_id": "C013",
@@ -322,7 +342,11 @@
     "lang": "ja",
     "retrieved_at": "2026-08-18",
     "confidence": 0.8,
-    "note": "ビンタン店の2026年内出店予定は単一二次情報で確認。記事の「現地報道によれば」という留保は妥当。"
+    "note": "ビンタン店の2026年内出店予定は単一二次情報で確認。記事の「現地報道によれば」という留保は妥当。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_AS_IS",
+    "review_note": "単一ソースだが仕様値・権威ある報道・既存の留保表現などにより採用可と判断"
   },
   {
     "claim_id": "C026",
@@ -348,7 +372,11 @@
     "lang": "vi",
     "retrieved_at": "2026-08-18",
     "confidence": 0.85,
-    "note": "独立2媒体（BNEWS／Nhân Dân）が「gần 29 tỷ USD＝290億ドルに迫る」で一致。産業全体と靴の切り分けも記事と一致。ただし原文は「迫った」であり、記事の「達し」は過大。統計局の通年確定値は本セッションから取得不可（503）。 記事側を「290億ドルに迫り」へ修正し、原文の gần（〜に迫る）と一致させた。"
+    "note": "独立2媒体（BNEWS／Nhân Dân）が「gần 29 tỷ USD＝290億ドルに迫る」で一致。産業全体と靴の切り分けも記事と一致。ただし原文は「迫った」であり、記事の「達し」は過大。統計局の通年確定値は本セッションから取得不可（503）。 記事側を「290億ドルに迫り」へ修正し、原文の gần（〜に迫る）と一致させた。",
+    "reviewed_by": "tmysk76@gmail.com",
+    "reviewed_at": "2026-08-21",
+    "review_decision": "APPROVED_AS_IS",
+    "review_note": "単一ソースだが仕様値・権威ある報道・既存の留保表現などにより採用可と判断"
   },
   {
     "claim_id": "C028",

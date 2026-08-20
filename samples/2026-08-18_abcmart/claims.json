@@ -57,10 +57,10 @@
   },
   {
     "claim_id": "C009",
-    "claim": "イオンモールはベトナムで8施設を運営している",
+    "claim": "イオンモールはベトナムでブランド限定の8施設を運営している",
     "claim_type": "number",
     "section": "F",
-    "status": "UNVERIFIED",
+    "status": "PARTIAL_APPROVED",
     "evidence": []
   },
   {

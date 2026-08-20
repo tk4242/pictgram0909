@@ -107,7 +107,8 @@ def main():
             "- 図表2点は **PowerPoint形式（figures.pptx）** で納品。支給テンプレートの"
             "ネイティブグラフを流用し、フォントは Meiryo UI を明示指定",
             "- サムネイル1点（TYPE C）。3パターンを記事ごとに交互使用する運用",
-            "- **背景写真は仮画像**（Magnific未接続のため）。本番はMagnificで差し替える",
+            "- ⚠️ **背景写真は本番画像ではありません（仮画像）**。Magnific未接続のための代替です。"
+            "本番公開前に必ずMagnific生成・高解像度化した画像へ差し替えてください",
             f"- **メタディスクリプション（{n(meta)}字・WordPress入稿用。本文には掲載しない）**："
             f"「{meta}」",
             ""]
@@ -141,11 +142,24 @@ def main():
     weak = [e for e in ev if e["status"] == "PARTIAL"
             and next((c["claim_type"] for c in claims if c["claim_id"] == e["claim_id"]), "")
             in ("number", "date", "forecast")]
-    out += [f'## 承認前の確認事項：裏付けが単一ソースの数値・日付（{len(weak)}件） {{toggle="true"}}', ""]
-    out += ["\t設計書§11は「一次情報1件＋独立情報1件」または「権威ある一次資料1件」を求める。"
-            "以下は未充足のため、承認前に内容を確認すること。", ""]
+    all_reviewed = bool(weak) and all(e.get("reviewed_by") for e in weak)
+    if all_reviewed:
+        dates = sorted({e["reviewed_at"] for e in weak if e.get("reviewed_at")})
+        out += [f'## 人間レビュー確認済み：裏付けが単一ソースの数値・日付（{len(weak)}件） '
+                '{toggle="true"}', ""]
+        out += ["\t設計書§11は「一次情報1件＋独立情報1件」を満たしていませんが、"
+                f"{'/'.join(dates)}付で**ユーザー確認済み**です（下記の判断で確定）。", ""]
+    else:
+        out += [f'## 承認前の確認事項：裏付けが単一ソースの数値・日付（{len(weak)}件） {{toggle="true"}}', ""]
+        out += ["\t設計書§11は「一次情報1件＋独立情報1件」または「権威ある一次資料1件」を求める。"
+                "以下は未充足のため、承認前に内容を確認すること。", ""]
     for e in weak:
-        out += [f"\t- **{e['claim_id']}**：{e['note']}"]
+        if e.get("reviewed_by"):
+            tag = "確認済み・修正済み" if e.get("review_decision") == "APPROVED_WITH_EDIT" else "確認済み・採用"
+            extra = f"→{e['review_note']}" if e.get("review_decision") == "APPROVED_WITH_EDIT" else ""
+            out += [f"\t- ✅{tag} **{e['claim_id']}**：{e['note']}{extra}"]
+        else:
+            out += [f"\t- **{e['claim_id']}**：{e['note']}"]
     out += [""]
 
     path = HERE / "notion_delivery.md"
