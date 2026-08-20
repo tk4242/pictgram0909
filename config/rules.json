@@ -1,0 +1,60 @@
+{
+  "rule_version": "2026-08-20",
+  "source": "Notion「記事作成のご案内」（公開共有ページ）",
+  "source_page_id": "3b9e27bf-f22b-8055-8d08-d2b78c7b8f77",
+  "source_url": "https://app.notion.com/p/3b9e27bff22b80558d08d2b78c7b8f77",
+  "retrieved_at": "2026-08-20",
+  "sha256": "02ee0db7ea705c514b7a24ee4657c069dd6cd11aa4033dc083c89963f370af75",
+  "article_title_min": 26,
+  "article_title_max": 28,
+  "title_must_include": [
+    "ベトナム",
+    "記事を象徴する重要キーワード1〜2語"
+  ],
+  "body_length_target": 1500,
+  "meta_description_range": [
+    80,
+    90
+  ],
+  "figures_per_article": 2,
+  "figure_format": "pptx",
+  "figure_key_message_max": 28,
+  "free_ratio_target": 0.6667,
+  "free_ratio_note": "全体の3分の2程度を公開、残りは無料会員限定（原典の表記）",
+  "thumbnails_per_article": 1,
+  "thumbnail_patterns": [
+    "A",
+    "B",
+    "C"
+  ],
+  "thumbnail_rule": "Canvaの3パターンを交互使用。デザイン変更不要、文字と色味のみ変更",
+  "h2_required": "複数個、SEOキーワードを含める",
+  "articles_per_month": [
+    30,
+    50
+  ],
+  "minutes_per_article": [
+    20,
+    30
+  ],
+  "source_media": "NNA（記事リンクが送付される）",
+  "local_media_images": "使用可。ただし出所先と出所リンクを明記",
+  "test_delivery": "notion",
+  "production_delivery": "wordpress",
+  "wordpress_tasks": [
+    "サムネイル画像の作成と設定",
+    "文章の転記",
+    "画像の転記＋画像キャプション文章の差し込み",
+    "カテゴリー設定",
+    "タグ設定"
+  ],
+  "accounts": {
+    "nna": "共有予定",
+    "magnific": "共有予定",
+    "wordpress": "執筆者権限"
+  },
+  "human_review_required": true,
+  "human_review_scope": "最終的な事実チェックと自然な文章になっているかは目視が必要",
+  "figure_note": "AI使用可能だが、過去記事のトンマナに合わせる。AIで作成してそのままチェックせず納品しないこと",
+  "seo_plus_alpha": "記事内容＋αの背景・経緯のまとめを加える（SEO重視）"
+}
