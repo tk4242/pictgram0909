@@ -17,7 +17,7 @@
   },
   {
     "claim_id": "C003",
-    "claim": "新店の名称は「ABCマート グランドステージ イオンモール タンフーセラドン店」",
+    "claim": "新店の名称は「ABCマート・グランドステージ・イオンモール・タンフーセラドン店」",
     "claim_type": "name",
     "section": "F",
     "status": "UNVERIFIED",
@@ -41,7 +41,7 @@
   },
   {
     "claim_id": "C006",
-    "claim": "新店はベトナム国内最大級というキッズコーナーを備える",
+    "claim": "新店はベトナム最大級というキッズコーナーを備える",
     "claim_type": "fact",
     "section": "F",
     "status": "UNVERIFIED",
@@ -137,7 +137,7 @@
   },
   {
     "claim_id": "C019",
-    "claim": "2022年10月の発表時、ABCマートは2023年度までに6店を出す計画を示していた",
+    "claim": "2022年10月の発表時、ABCマートは2023年度までに6店を出す目標を掲げていた",
     "claim_type": "forecast",
     "section": "X",
     "status": "UNVERIFIED",
