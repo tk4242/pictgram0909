@@ -17,6 +17,14 @@ REPO = HERE.parent.parent
 n = lambda s: len(unicodedata.normalize("NFC", re.sub(r"\*", "", s.strip())))
 results = []
 
+# ── 凍結ルール（Phase 0 Rule Freeze 完了。config/rules.json が唯一の真実）──
+# 閾値をここへ直書きすると原典改訂に追随できないため、必ず凍結ファイルから引く。
+RULES = json.loads((REPO / "config/rules.json").read_text(encoding="utf-8"))
+BODY_TARGET = RULES["body_length_target"]
+BODY_MIN, BODY_MAX = int(BODY_TARGET * 0.85), int(BODY_TARGET * 1.15)  # 「1,500字程度」の許容幅±15%
+META_MIN, META_MAX = RULES["meta_description_range"]
+FREE_MIN, FREE_MAX = RULES["free_ratio_target"] - 0.0667, RULES["free_ratio_target"] + 0.0333
+
 
 def gate(rid, label, ok, actual, expect, *, stub=False, review=False):
     """review=True の項目は工程を止めない代わりに、人間レビューで必ず提示する。
@@ -35,16 +43,19 @@ pub, mem = sum(map(n, F)), sum(map(n, X))
 tot = pub + mem
 KW = ["ベトナム", "イオンモール", "ABCマート", "小売", "出店", "多店舗", "専門店", "5号店", "5店舗"]
 
-gate("T01", "タイトル文字数", all(26 <= n(t) <= 28 for t in T), str([n(t) for t in T]), "26-28字")
+gate("T01", "タイトル文字数",
+     all(RULES["article_title_min"] <= n(t) <= RULES["article_title_max"] for t in T),
+     str([n(t) for t in T]), f'{RULES["article_title_min"]}-{RULES["article_title_max"]}字')
 gate("T02", "「ベトナム」含有", all("ベトナム" in t for t in T), f"{sum('ベトナム' in t for t in T)}/{len(T)}", "全案")
 gate("T03", "タイトル案数", len(T) >= 3, f"{len(T)}案", "3案以上")
-gate("M01", "メタディスクリプション", 80 <= n(M) <= 90, f"{n(M)}字", "80-90字")
-gate("B01", "本文文字数", 1275 <= tot <= 1725, f"{tot}字", "1,275-1,725字")
+gate("M01", "メタディスクリプション", META_MIN <= n(M) <= META_MAX, f"{n(M)}字", f"{META_MIN}-{META_MAX}字")
+gate("B01", "本文文字数", BODY_MIN <= tot <= BODY_MAX, f"{tot}字", f"{BODY_MIN:,}-{BODY_MAX:,}字")
 gate("B02", "H2見出し数", len(H) >= 2, f"{len(H)}本", "2本以上")
 gate("B03", "H2キーワード", not [h for h in H if not any(k in h for k in KW)],
      f"未充足{len([h for h in H if not any(k in h for k in KW)])}本", "全H2")
-gate("F01", "図表枚数", len(G) == 2, f"{len(G)}枚", "2枚")
-gate("G01", "公開比率", 0.60 <= pub / tot <= 0.70, f"{pub/tot*100:.1f}%（{pub}/{tot}字）", "60-70%")
+gate("F01", "図表枚数", len(G) == RULES["figures_per_article"], f"{len(G)}枚", f'{RULES["figures_per_article"]}枚')
+gate("G01", "公開比率", FREE_MIN <= pub / tot <= FREE_MAX,
+     f"{pub/tot*100:.1f}%（{pub}/{tot}字）", f"{FREE_MIN*100:.0f}-{FREE_MAX*100:.0f}%")
 
 # ── 会員限定ショートコード（設計書§3）──
 cms = (HERE / "cms_output.txt").read_text(encoding="utf-8")
@@ -70,7 +81,8 @@ for slide in prs.slides:
         if "プレースホルダー 3" in name:
             srcs.append(t)
 
-gate("F02", "図表キーメッセージ", all(l <= 28 for l in km_lens), str(km_lens), "28字以内")
+gate("F02", "図表キーメッセージ", all(l <= RULES["figure_key_message_max"] for l in km_lens),
+     str(km_lens), f'{RULES["figure_key_message_max"]}字以内')
 gate("F03a", "図表タイトル改行なし", not any(title_nl), f"改行{sum(title_nl)}件", "0件（一次判定）")
 gate("CIT01", "引用表記", all("InfoBank作成" in s for s in srcs), f"{len(srcs)}件中{sum('InfoBank作成' in s for s in srcs)}件", "全図表")
 
@@ -102,8 +114,15 @@ gate("TH01", "サムネイル1枚・構成", thumb_ok, f"TYPE {meta['pattern']}�
 gate("TH02", "ロゴは実ファイル", "抽出した実ロゴ" in meta["logo"]["source"], meta["logo"]["file"], "偽ロゴ禁止")
 
 # ── 外部接続依存（テストモードでスタブ。設計書§32）──
-snap = json.loads((HERE / "rules_snapshot.json").read_text(encoding="utf-8"))
-gate("RULE01", "ルールhash", bool(snap.get("sha256")), snap["sha256"][:16] + "...", "hash記録", stub=True)
+# RULE01: 原典（config/rules_source.md）を再ハッシュし、凍結値と一致するかを検証する。
+# Phase 0 完了前は「hashが記録されているか」だけのSTUBだったが、原典を取得済みの今は
+# 「執筆時のルールが原典と同一である」ことまで決定論的に確かめられる。
+import hashlib
+live_hash = hashlib.sha256((REPO / "config/rules_source.md").read_bytes()).hexdigest()
+hash_ok = live_hash == RULES["sha256"]
+gate("RULE01", "ルールhash一致", hash_ok,
+     f'{live_hash[:16]}...（rule_version={RULES["rule_version"]}）',
+     f'{RULES["sha256"][:16]}...')
 gate("IMG01", "画像provider", meta["background"]["provider"].endswith("placeholder"),
      meta["background"]["provider"], "Magnific（本番）", stub=True)
 

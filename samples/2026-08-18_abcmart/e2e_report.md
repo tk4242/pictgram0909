@@ -16,7 +16,7 @@
 | `make_thumbnail.py` / `validate_thumbnail.py` | サムネイル合成スクリプトと機械QA |
 | `background_photo.png` | 文字を含まない背景写真（仮画像） |
 | `thumbnail_meta.json` | サムネイル生成メタデータ（§17相当の記録） |
-| `rules_snapshot.json` | ルールスナップショット＋SHA-256（§5） |
+| `rules_snapshot.json` | Phase 0 完了前の暫定ルール（v1転記）。**現在は未使用**。検証は `config/rules.json`（原典由来・SHA-256照合）が正 |
 | `validate.py` / `make_figures.py` | validator／図表ビルダー |
 
 ## Final Gates結果
